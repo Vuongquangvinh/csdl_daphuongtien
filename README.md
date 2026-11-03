@@ -187,7 +187,53 @@ npm run dev
 
 Sau đó truy cập `http://localhost:5173`.
 
-## 8. Lỗi thường gặp
+## 8. Trích xuất đặc trưng âm thanh
+
+Sau khi database đã được tạo, chạy:
+
+```powershell
+cd D:\git\csdl_daphuongtien
+python .\database\extract_features.py
+```
+
+Script đọc các file WAV và lưu vào bảng `audio_features`:
+
+- RMS energy và peak amplitude.
+- Zero-crossing rate.
+- F0 trung bình và tỷ lệ frame hữu thanh.
+- 13 hệ số MFCC trung bình và độ lệch chuẩn.
+- Waveform và đường cong F0 được lấy mẫu rút gọn để lưu JSON.
+
+Có thể kiểm tra nhanh số lượng:
+
+```powershell
+@'
+import sqlite3
+with sqlite3.connect("database/vietvoice.db") as db:
+    print(db.execute("SELECT COUNT(*) FROM audio_features").fetchone()[0])
+'@ | python
+```
+
+## 9. Giao diện các chức năng
+
+Frontend hiện có bốn tab:
+
+- **Phòng Tổng Hợp (TTS Studio):** nhập văn bản, kiểm tra từ và tổng hợp WAV.
+- **Khám Phá CSDL:** tìm kiếm từ, xem trạng thái audio và mở đặc trưng.
+- **Trực Quan Đặc Trưng:** xem waveform, F0 và MFCC của một `word_id`.
+- **Sơ Đồ Khối & Báo Cáo:** xem pipeline và mô tả kỹ thuật của đề tài.
+
+Từ tab Khám Phá CSDL, nút **Đặc trưng** chuyển sang tab trực quan tương ứng.
+Nút **Nghe** tổng hợp và phát audio của từ qua API backend.
+
+### Chuẩn hóa đầu vào
+
+Backend chuẩn hóa văn bản Unicode NFC và không phân biệt chữ hoa/chữ thường khi tra
+cứu từ. Vì vậy các dạng như `a`, `A`, `á` và `Á` (khi cùng tồn tại trong corpus)
+được tra cứu theo cùng quy tắc; token hiển thị trên giao diện vẫn giữ nguyên cách
+người dùng đã nhập.
+
+## 10. Lỗi thường gặp
 
 ### Frontend không tải được dữ liệu
 

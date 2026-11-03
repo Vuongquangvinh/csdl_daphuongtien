@@ -307,7 +307,7 @@ export default function App() {
                         <span key={idx} className="px-2.5 py-1 text-xs font-bold bg-emerald-100 text-emerald-800 rounded-lg border border-emerald-200 flex items-center space-x-1 shadow-sm">
                           <span>✓</span>
                           <span>{t.token}</span>
-                          <span className="text-[10px] text-emerald-600 font-normal">({t.word_id})</span>
+                          <span className="text-[10px] text-emerald-600 font-normal">({t.encoded_filename})</span>
                         </span>
                       ) : (
                         <span key={idx} className="px-2.5 py-1 text-xs font-bold bg-rose-100 text-rose-800 rounded-lg border border-rose-300 flex items-center space-x-1 shadow-sm" title="Từ này chưa có file audio trong CSDL">

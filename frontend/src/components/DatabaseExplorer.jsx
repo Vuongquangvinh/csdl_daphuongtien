@@ -46,7 +46,7 @@ export default function DatabaseExplorer({ onInspectFeature, onPlayAudio }) {
               type="text"
               value={query}
               onChange={(e) => { setQuery(e.target.value); setPage(1); }}
-              placeholder="Tìm theo từ hoặc ID (ví dụ: ba, W00001)..."
+              placeholder="Tìm theo từ hoặc tên file mã hóa (ví dụ: ba, ba0.wav)..."
               className="w-full pl-9 pr-3 py-2 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-brand-500 outline-none"
             />
           </div>
@@ -68,7 +68,7 @@ export default function DatabaseExplorer({ onInspectFeature, onPlayAudio }) {
         <table className="w-full text-left text-sm text-slate-600">
           <thead className="bg-slate-100 text-xs uppercase font-bold text-slate-700">
             <tr>
-              <th className="px-4 py-3">Mã Từ (ID)</th>
+              <th className="px-4 py-3">Tên File Mã Hóa</th>
               <th className="px-4 py-3">Từ Tiếng Việt</th>
               <th className="px-4 py-3">Người Thu</th>
               <th className="px-4 py-3">Thời Lượng</th>
@@ -95,7 +95,7 @@ export default function DatabaseExplorer({ onInspectFeature, onPlayAudio }) {
             ) : (
               data.items.map((row) => (
                 <tr key={row.word_id} className="hover:bg-slate-50 transition border-b border-slate-100">
-                  <td className="px-4 py-3 font-mono text-xs font-bold text-slate-700">{row.word_id}</td>
+                  <td className="px-4 py-3 font-mono text-xs font-bold text-slate-700">{row.encoded_filename || '-'}</td>
                   <td className="px-4 py-3 font-bold text-slate-900">{row.word}</td>
                   <td className="px-4 py-3 text-xs text-slate-500">{row.speaker_id}</td>
                   <td className="px-4 py-3 text-xs">{row.duration ? row.duration + ' s' : '-'}</td>
@@ -168,4 +168,3 @@ export default function DatabaseExplorer({ onInspectFeature, onPlayAudio }) {
     </div>
   )
 }
-

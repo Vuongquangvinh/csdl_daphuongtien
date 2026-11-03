@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import base64
 import io
+import json
 import math
 import re
 import sqlite3
+import unicodedata
 import wave
 from pathlib import Path
 from typing import Any
@@ -54,14 +56,20 @@ def tokenize(text: str) -> list[tuple[str, str]]:
     ]
 
 
+def normalize_word(word: str) -> str:
+    return unicodedata.normalize("NFC", word).casefold()
+
+
 def word_rows(words: list[str], speaker_id: str = "S01") -> list[sqlite3.Row | None]:
     if not words:
         return []
-    placeholders = ",".join("?" for _ in words)
+    normalized_words = [normalize_word(word) for word in words]
+    placeholders = ",".join("?" for _ in normalized_words)
     with connection() as db:
         rows = db.execute(
             f"""
             SELECT w.word_id, w.word, a.file_path, a.file_name,
+                   w.encoded_filename,
                    a.sample_rate, a.channels, a.sample_width_bytes,
                    a.duration_seconds
             FROM words w
@@ -69,10 +77,10 @@ def word_rows(words: list[str], speaker_id: str = "S01") -> list[sqlite3.Row | N
               ON a.word_id = w.word_id AND a.speaker_id = ?
             WHERE w.word IN ({placeholders})
             """,
-            [speaker_id, *words],
+            [speaker_id, *normalized_words],
         ).fetchall()
-    by_word = {row["word"]: row for row in rows}
-    return [by_word.get(word) for word in words]
+    by_word = {normalize_word(row["word"]): row for row in rows}
+    return [by_word.get(word) for word in normalized_words]
 
 
 def check_tokens(text: str) -> list[dict[str, Any]]:
@@ -92,6 +100,7 @@ def check_tokens(text: str) -> list[dict[str, Any]]:
                 "type": "word",
                 "available": row is not None and row["file_path"] is not None,
                 "word_id": row["word_id"] if row else None,
+                "encoded_filename": row["encoded_filename"] if row else None,
             }
         )
     return result
@@ -276,8 +285,8 @@ def words(
     page: int = Query(default=1, ge=1),
     limit: int = Query(default=20, ge=1, le=100),
 ) -> dict[str, Any]:
-    where = ["(w.word LIKE ? OR w.word_id LIKE ?)"]
-    params: list[Any] = [f"%{q}%", f"%{q}%"]
+    where = ["(w.word LIKE ? OR w.word_id LIKE ? OR w.encoded_filename LIKE ?)"]
+    params: list[Any] = [f"%{q}%", f"%{q}%", f"%{q}%"]
     if filter_status == "audio":
         where.append("a.audio_id IS NOT NULL")
     elif filter_status == "missing":
@@ -290,7 +299,8 @@ def words(
         ).fetchone()[0]
         rows = db.execute(
             f"""
-            SELECT w.word_id, w.word, a.speaker_id, a.duration_seconds AS duration,
+            SELECT w.word_id, w.word, w.encoded_filename, a.speaker_id,
+                   a.duration_seconds AS duration,
                    a.sample_rate, af.rms_energy, af.f0_mean_hz,
                    CASE WHEN a.audio_id IS NOT NULL THEN 1 ELSE 0 END AS has_audio
             FROM words w
@@ -317,7 +327,8 @@ def features(word_id: str) -> dict[str, Any]:
     with connection() as db:
         row = db.execute(
             """
-            SELECT w.word, w.word_id, a.duration_seconds AS duration,
+            SELECT w.word, w.word_id, w.encoded_filename,
+                   a.duration_seconds AS duration,
                    a.sample_rate, af.*
             FROM words w
             LEFT JOIN audio_records a ON a.word_id = w.word_id
@@ -334,6 +345,7 @@ def features(word_id: str) -> dict[str, Any]:
     return {
         "word": row["word"],
         "word_id": row["word_id"],
+        "encoded_filename": row["encoded_filename"],
         "duration": row["duration"],
         "sample_rate": row["sample_rate"],
         "rms_energy": row["rms_energy"],
@@ -341,9 +353,9 @@ def features(word_id: str) -> dict[str, Any]:
         "zcr_mean": row["zcr_mean"],
         "f0_mean_hz": row["f0_mean_hz"],
         "f0_voiced_fraction": row["f0_voiced_fraction"] or 0,
-        "mfcc_mean": [],
-        "mfcc_std": [],
-        "waveform": [],
-        "f0_curve": [],
+        "mfcc_mean": json.loads(row["mfcc_mean_json"] or "[]"),
+        "mfcc_std": json.loads(row["mfcc_std_json"] or "[]"),
+        "waveform": json.loads(row["waveform_json"] or "[]"),
+        "f0_curve": json.loads(row["f0_curve_json"] or "[]"),
         "quality_warnings": row["quality_warnings"],
     }
