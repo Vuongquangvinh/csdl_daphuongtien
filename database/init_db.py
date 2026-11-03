@@ -16,6 +16,18 @@ DEFAULT_DB = Path(__file__).resolve().parent / "vietvoice.db"
 DEFAULT_SCHEMA = Path(__file__).resolve().parent / "schema.sql"
 
 
+def physical_audio_path(audio_dir: Path, encoded_filename: str) -> Path:
+    target = audio_dir / encoded_filename
+    if target.exists():
+        return target
+    stem = Path(encoded_filename).stem.lower()
+    if stem in {f"com{number}" for number in range(1, 10)}:
+        safe_target = audio_dir / f"{Path(encoded_filename).stem}_audio.wav"
+        if safe_target.exists():
+            return safe_target
+    return target
+
+
 def read_metadata(csv_path: Path) -> list[dict[str, str]]:
     with csv_path.open("r", encoding="utf-8-sig", newline="") as stream:
         return list(csv.DictReader(stream))
@@ -46,6 +58,7 @@ def create_database(
         raise FileNotFoundError(f"Audio directory not found: {audio_dir}")
 
     rows = read_metadata(csv_path)
+    used_encoded_names: set[str] = set()
     db_path.parent.mkdir(parents=True, exist_ok=True)
 
     with sqlite3.connect(db_path) as connection:
@@ -66,7 +79,9 @@ def create_database(
         audio_count = 0
         for row in rows:
             word_id = row["ID"].strip()
-            audio_path = audio_dir / f"{word_id}.wav"
+            encoded_filename = row["Ten_File_Ma_Hoa"].strip()
+            audio_path = physical_audio_path(audio_dir, encoded_filename)
+            has_unique_audio_owner = encoded_filename not in used_encoded_names
             connection.execute(
                 """
                 INSERT INTO words (
@@ -82,9 +97,10 @@ def create_database(
                 ),
             )
 
-            if not audio_path.is_file():
+            if not audio_path.is_file() or not has_unique_audio_owner:
                 continue
 
+            used_encoded_names.add(encoded_filename)
             wave_data = read_wave_metadata(audio_path)
             connection.execute(
                 """

@@ -30,7 +30,7 @@ python .\database\init_db.py
 Script sẽ:
 
 1. Đọc 7.169 từ từ `metadata_encoded.csv`.
-2. Tìm audio theo mã từ, ví dụ `W00001.wav` trong thư mục `metadata`.
+2. Tìm audio theo tên trong cột `Ten_File_Ma_Hoa`, ví dụ `a0.wav` trong thư mục `metadata`.
 3. Lưu thông tin từ vào bảng `words`.
 4. Lưu speaker mặc định `S01` vào bảng `speakers`.
 5. Đọc thông số WAV và lưu vào bảng `audio_records`.
@@ -57,11 +57,16 @@ Words without audio: 1740
 chuyển repository mà không phải sửa toàn bộ dữ liệu. Script có thể chạy lại an toàn;
 nó sẽ nạp lại dữ liệu từ đầu.
 
-## 3. Chuẩn bị backend
+Các file trong thư mục `metadata` đã được đổi từ dạng `Wxxxxx.wav` sang tên trong
+cột `Ten_File_Ma_Hoa` của CSV. Có 3 tên mã hóa bị trùng trong CSV; mỗi file audio
+hiện có chỉ được liên kết với bản ghi đầu tiên có audio để tránh một file bị gán cho
+hai từ.
 
-Trong phiên bản repository hiện tại, chưa có mã nguồn backend, file `requirements.txt`,
-`pyproject.toml` hoặc lệnh khởi động backend. Vì vậy không thể chạy backend trực tiếp
-từ repository này cho đến khi bổ sung hoặc cung cấp thư mục backend.
+## 3. Chạy backend
+
+Backend FastAPI hiện nằm trong [`backend/`](./backend), đọc database
+[`database/vietvoice.db`](./database/vietvoice.db) và các file WAV trong
+[`metadata/`](./metadata).
 
 Backend cần cung cấp tối thiểu các API mà frontend đang gọi:
 
@@ -74,17 +79,20 @@ Backend cần cung cấp tối thiểu các API mà frontend đang gọi:
 | `GET` | `/api/words` | Tìm kiếm, lọc và phân trang dữ liệu từ |
 | `GET` | `/api/features/{word_id}` | Lấy waveform, F0 và MFCC của một từ |
 
-### Khi đã có mã nguồn backend
-
-Mở một terminal riêng, chuyển vào thư mục backend và cài dependency theo hướng dẫn
-của backend. Ví dụ với một backend FastAPI có file `requirements.txt`:
+Mở một terminal riêng tại thư mục repository:
 
 ```powershell
-cd D:\duong-dan\toi\backend
+cd D:\git\csdl_daphuongtien
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
+python -m pip install -r .\backend\requirements.txt
 python -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload
+```
+
+Với cấu trúc hiện tại, lệnh khởi động đúng module backend là:
+
+```powershell
+python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
 Nếu PowerShell chặn việc kích hoạt virtual environment, có thể chạy lệnh sau một lần
@@ -164,9 +172,9 @@ riêng tại cổng `8000`.
 ### Terminal 1 - Backend
 
 ```powershell
-cd D:\duong-dan\toi\backend
+cd D:\git\csdl_daphuongtien
 .\.venv\Scripts\Activate.ps1
-python -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload
+python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
 ### Terminal 2 - Frontend
@@ -206,3 +214,13 @@ Khi đổi cổng frontend, proxy `/api` vẫn được áp dụng theo cấu h�
 
 Nếu đổi cổng backend, cần cập nhật `server.proxy['/api'].target` trong
 [`frontend/vite.config.js`](./frontend/vite.config.js), sau đó khởi động lại Vite.
+
+
+
+
+
+/api/words?q=a&filter_status=audio&page=1&limit=2
+
+cd D:\git\csdl_daphuongtien
+python -m pip install -r .\backend\requirements.txt
+python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 --reload
