@@ -5,7 +5,7 @@ export default function ArchitectureDocs() {
   return (
     <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-6">
       <div>
-        <span className="px-2.5 py-1 bg-brand-100 text-brand-700 text-xs font-bold rounded-md">Báo Cáo Kỹ Thuật</span>
+        <span className="px-2.5 py-1 bg-[#e6f2fb] text-[#005baa] text-xs font-bold rounded">Báo Cáo Kỹ Thuật</span>
         <h2 className="text-2xl font-extrabold text-slate-900 mt-2">Sơ Đồ Khối & Kiến Trúc Hệ Thống Tổng Hợp Giọng Nói</h2>
         <p className="text-sm text-slate-600 mt-1">
           Đáp ứng đầy đủ 7 tiêu chí đánh giá đề tài môn học Cơ sở dữ liệu đa phương tiện.
@@ -17,13 +17,13 @@ export default function ArchitectureDocs() {
         <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide">Quy trình xử lý tuần tự (End-to-End Pipeline):</h3>
         <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
           <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-center space-y-2">
-            <div className="w-8 h-8 rounded-full bg-brand-100 text-brand-600 font-bold mx-auto flex items-center justify-center text-sm">1</div>
+            <div className="w-8 h-8 rounded-full bg-[#e6f2fb] text-[#005baa] font-bold mx-auto flex items-center justify-center text-sm">1</div>
             <h4 className="text-xs font-bold text-slate-800">Tiếp Nhận & Chuẩn Hóa</h4>
             <p className="text-[11px] text-slate-500">Chuẩn hóa NFC, tách từ tokenization và nhận diện dấu câu.</p>
           </div>
 
           <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-center space-y-2">
-            <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 font-bold mx-auto flex items-center justify-center text-sm">2</div>
+            <div className="w-8 h-8 rounded-full bg-[#e6f2fb] text-[#005baa] font-bold mx-auto flex items-center justify-center text-sm">2</div>
             <h4 className="text-xs font-bold text-slate-800">Truy Vấn CSDL</h4>
             <p className="text-[11px] text-slate-500">Tra cứu nhanh qua SQLite Index (Word + AudioRecord + AudioFeature).</p>
           </div>
@@ -53,7 +53,7 @@ export default function ArchitectureDocs() {
         <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide">Giải pháp kỹ thuật cho 7 tiêu chí đề bài:</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="p-4 rounded-xl border border-slate-200 bg-white space-y-1.5">
-            <div className="flex items-center space-x-2 text-brand-600 font-bold text-sm">
+            <div className="flex items-center space-x-2 text-[#005baa] font-bold text-sm">
               <CheckCircle2 className="w-4 h-4" />
               <span>Yêu cầu 1: Ngữ liệu song song văn bản - âm thanh</span>
             </div>
@@ -63,7 +63,7 @@ export default function ArchitectureDocs() {
           </div>
 
           <div className="p-4 rounded-xl border border-slate-200 bg-white space-y-1.5">
-            <div className="flex items-center space-x-2 text-brand-600 font-bold text-sm">
+            <div className="flex items-center space-x-2 text-[#005baa] font-bold text-sm">
               <CheckCircle2 className="w-4 h-4" />
               <span>Yêu cầu 2: Kỹ thuật tổng hợp TTS mức từ</span>
             </div>
@@ -73,7 +73,7 @@ export default function ArchitectureDocs() {
           </div>
 
           <div className="p-4 rounded-xl border border-slate-200 bg-white space-y-1.5">
-            <div className="flex items-center space-x-2 text-brand-600 font-bold text-sm">
+            <div className="flex items-center space-x-2 text-[#005baa] font-bold text-sm">
               <CheckCircle2 className="w-4 h-4" />
               <span>Yêu cầu 3: Hệ thống nhận từ -&gt; xuất âm thanh</span>
             </div>
@@ -83,7 +83,7 @@ export default function ArchitectureDocs() {
           </div>
 
           <div className="p-4 rounded-xl border border-slate-200 bg-white space-y-1.5">
-            <div className="flex items-center space-x-2 text-brand-600 font-bold text-sm">
+            <div className="flex items-center space-x-2 text-[#005baa] font-bold text-sm">
               <CheckCircle2 className="w-4 h-4" />
               <span>Yêu cầu 4: Sơ đồ khối & quy trình thực hiện</span>
             </div>
@@ -93,7 +93,7 @@ export default function ArchitectureDocs() {
           </div>
 
           <div className="p-4 rounded-xl border border-slate-200 bg-white space-y-1.5">
-            <div className="flex items-center space-x-2 text-brand-600 font-bold text-sm">
+            <div className="flex items-center space-x-2 text-[#005baa] font-bold text-sm">
               <CheckCircle2 className="w-4 h-4" />
               <span>Yêu cầu 5: Thuộc tính & đặc trưng âm thanh</span>
             </div>
@@ -103,7 +103,7 @@ export default function ArchitectureDocs() {
           </div>
 
           <div className="p-4 rounded-xl border border-slate-200 bg-white space-y-1.5">
-            <div className="flex items-center space-x-2 text-brand-600 font-bold text-sm">
+            <div className="flex items-center space-x-2 text-[#005baa] font-bold text-sm">
               <CheckCircle2 className="w-4 h-4" />
               <span>Yêu cầu 6: Quản lý CSDL Đa phương tiện</span>
             </div>
@@ -116,4 +116,3 @@ export default function ArchitectureDocs() {
     </div>
   )
 }
-

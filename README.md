@@ -79,6 +79,15 @@ Backend cần cung cấp tối thiểu các API mà frontend đang gọi:
 | `GET` | `/api/words` | Tìm kiếm, lọc và phân trang dữ liệu từ |
 | `GET` | `/api/features/{word_id}` | Lấy waveform, F0 và MFCC của một từ |
 
+Khi tổng hợp TTS, backend tách input thành từng từ tiếng Việt, mã hóa mỗi từ theo
+quy ước corpus (ví dụ `cá` thành `ca1`, `con` thành `con0`), rồi tra cứu cột
+`words.encoded_word` trong SQLite. Sau khi tìm thấy bản ghi, hệ thống dùng
+`word_id` để lấy file WAV tương ứng; không tra cứu trực tiếp bằng tên file.
+
+Tùy chọn cân bằng âm lượng dùng chuẩn hóa RMS thật sự cho từng đoạn audio, có
+giới hạn peak để tránh clipping sau khi ghép. Quy trình này điều chỉnh độ to,
+không thay đổi cao độ hay tốc độ phát âm.
+
 Mở một terminal riêng tại thư mục repository:
 
 ```powershell

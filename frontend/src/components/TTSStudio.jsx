@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Edit3, Sparkles, Play, Loader2, Check, Download, Sliders, Scissors, Info } from 'lucide-react'
+import { Edit3, Play, Loader2, Check, Download, Sliders, Scissors } from 'lucide-react'
 
 function formatTime(secs) {
   if (!secs || isNaN(secs)) return '0:00'
@@ -8,7 +8,7 @@ function formatTime(secs) {
   return `${m}:${s < 10 ? '0' : ''}${s}`
 }
 
-export default function TTSStudio({ samples }) {
+export default function TTSStudio() {
   const [text, setText] = useState('ba bán bánh')
   const [tokens, setTokens] = useState([])
   const [isLoading, setIsLoading] = useState(false)
@@ -91,12 +91,12 @@ export default function TTSStudio({ samples }) {
     canvas.width = canvas.offsetWidth
     canvas.height = canvas.offsetHeight
 
-    ctx.fillStyle = '#0f172a'
+    ctx.fillStyle = '#071b2f'
     ctx.fillRect(0, 0, canvas.width, canvas.height)
 
     const numBars = 54
     const barWidth = canvas.width / numBars
-    ctx.fillStyle = '#6366f1'
+    ctx.fillStyle = '#4aa3df'
 
     for (let i = 0; i < numBars; i++) {
       const factor = Math.abs(Math.sin(i * 0.35) * Math.cos(i * 0.2)) * 0.75 + 0.15
@@ -111,17 +111,12 @@ export default function TTSStudio({ samples }) {
   const wordCount = tokens.filter(t => t.type === 'word').length
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* Hero Banner */}
-      <div className="bg-gradient-to-r from-brand-700 via-indigo-600 to-indigo-800 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
-        <div className="relative z-10 max-w-3xl">
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-white/20 text-white mb-2">
-            ReactJS Word-Level Concatenative TTS
-          </span>
-          <h2 className="text-2xl font-extrabold tracking-tight">Tổng Hợp Giọng Nói Tiếng Việt Mức Từ</h2>
-          <p className="mt-1 text-sm text-indigo-100 leading-relaxed">
-            Hệ thống tra cứu đơn vị âm thanh theo từ trong CSDL, cân bằng biên độ RMS, chèn khoảng dừng ngữ pháp và làm mượt biên độ tiếp giáp (Crossfade).
-          </p>
+      <div className="bg-[#005baa] px-5 py-4 text-white">
+        <div className="max-w-3xl">
+          <p className="text-xs font-semibold uppercase tracking-wide text-blue-100">Text To Speech</p>
+          <h2 className="mt-1 text-xl font-bold">Text To Speech</h2>
         </div>
       </div>
 
@@ -130,10 +125,10 @@ export default function TTSStudio({ samples }) {
         
         {/* Left 2 Cols: Text Input & Audio Player */}
         <div className="lg:col-span-2 space-y-5">
-          <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
+          <div className="bg-white p-5 border border-slate-200 space-y-4">
             <div className="flex items-center justify-between">
               <label className="text-sm font-bold text-slate-800 flex items-center space-x-2">
-                <Edit3 className="w-4 h-4 text-brand-600" />
+                <Edit3 className="w-4 h-4 text-[#005baa]" />
                 <span>Nhập văn bản cần tổng hợp:</span>
               </label>
               <span className="text-xs text-slate-400">{text.length} ký tự</span>
@@ -146,12 +141,12 @@ export default function TTSStudio({ samples }) {
               onKeyDown={(e) => {
                 if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') handleSynthesize()
               }}
-              className="w-full text-lg p-4 rounded-xl border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition resize-none placeholder-slate-400"
+              className="w-full text-lg p-3 rounded border border-slate-300 focus:ring-2 focus:ring-[#005baa] focus:border-[#005baa] outline-none transition resize-none placeholder-slate-400"
               placeholder="Nhập từ hoặc câu (Ví dụ: ba bán bánh, anh đi đâu đấy...)"
             />
 
             {/* Real-time Token Badges */}
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+            <div className="p-3 bg-slate-50 border border-slate-200 space-y-2">
               <div className="flex items-center justify-between text-xs text-slate-500">
                 <span className="font-medium">Kiểm tra khả dụng trong CSDL:</span>
                 {wordCount === 0 ? (
@@ -181,33 +176,11 @@ export default function TTSStudio({ samples }) {
               </div>
             </div>
 
-            {/* Sample Sentences Pills */}
-            <div>
-              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 flex items-center space-x-1">
-                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                <span>Câu mẫu thử nghiệm (100% có trong CSDL):</span>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {samples?.map((cat, i) =>
-                  cat.items.map((item, j) => (
-                    <button
-                      key={`${i}-${j}`}
-                      onClick={() => setText(item.text)}
-                      className="px-3 py-1.5 text-xs font-semibold bg-slate-100 hover:bg-brand-50 hover:text-brand-700 hover:border-brand-200 border border-slate-200 rounded-lg text-slate-700 transition"
-                      title={item.desc}
-                    >
-                      {item.text}
-                    </button>
-                  ))
-                )}
-              </div>
-            </div>
-
             {/* Action Button */}
             <div className="pt-2 flex items-center justify-between">
               <button
                 onClick={() => { setText(''); setResult(null) }}
-                className="px-4 py-2 text-sm text-slate-500 hover:text-slate-800 font-medium hover:bg-slate-100 rounded-lg transition"
+                className="px-4 py-2 text-sm text-slate-500 hover:text-slate-800 font-medium hover:bg-slate-100 rounded transition"
               >
                 Xóa văn bản
               </button>
@@ -215,7 +188,7 @@ export default function TTSStudio({ samples }) {
               <button
                 onClick={handleSynthesize}
                 disabled={isLoading}
-                className="inline-flex items-center space-x-2 px-6 py-3 bg-brand-600 hover:bg-brand-700 active:scale-95 text-white font-semibold rounded-xl shadow-lg shadow-brand-500/25 transition disabled:opacity-50"
+                className="inline-flex items-center space-x-2 px-5 py-2.5 bg-[#005baa] hover:bg-[#004987] active:scale-95 text-white font-semibold rounded transition disabled:opacity-50"
               >
                 {isLoading ? (
                   <>
@@ -234,7 +207,7 @@ export default function TTSStudio({ samples }) {
 
           {/* Result Player Card */}
           {result && (
-            <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
+            <div className="bg-white p-5 border border-slate-200 space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center">
@@ -259,8 +232,8 @@ export default function TTSStudio({ samples }) {
               </div>
 
               {/* Waveform Player Box */}
-              <div className="p-4 bg-slate-900 rounded-xl text-white space-y-3 shadow-inner">
-                <canvas ref={canvasRef} className="w-full h-20 rounded bg-slate-950 block"></canvas>
+              <div className="p-4 bg-[#102a43] text-white space-y-3">
+                <canvas ref={canvasRef} className="w-full h-20 bg-[#071b2f] block"></canvas>
                 <div className="flex items-center justify-between text-xs text-slate-400">
                   <span>{formatTime(currentTime)}</span>
                   <span>{formatTime(duration)}</span>
@@ -270,7 +243,7 @@ export default function TTSStudio({ samples }) {
                   controls
                   onTimeUpdate={(e) => setCurrentTime(e.target.currentTime)}
                   onLoadedMetadata={(e) => setDuration(e.target.duration)}
-                  className="w-full h-10 accent-brand-500 rounded"
+                  className="w-full h-10 accent-[#005baa] rounded"
                 />
               </div>
 
@@ -289,7 +262,7 @@ export default function TTSStudio({ samples }) {
                           audioRef.current.play()
                         }
                       }}
-                      className="px-2.5 py-1 text-xs font-semibold bg-slate-100 hover:bg-brand-100 text-slate-800 rounded-lg border border-slate-200 transition flex items-center space-x-1.5"
+                      className="px-2.5 py-1 text-xs font-semibold bg-slate-100 hover:bg-[#e6f2fb] text-slate-800 rounded-lg border border-slate-200 transition flex items-center space-x-1.5"
                     >
                       <span>{w.word}</span>
                       <span className="text-[10px] text-slate-400">{w.start}s</span>
@@ -303,9 +276,9 @@ export default function TTSStudio({ samples }) {
 
         {/* Right 1 Col: Controls */}
         <div className="space-y-5">
-          <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-5">
+          <div className="bg-white p-5 border border-slate-200 space-y-5">
             <div className="flex items-center space-x-2 pb-3 border-b border-slate-100">
-              <Sliders className="w-5 h-5 text-brand-600" />
+              <Sliders className="w-5 h-5 text-[#005baa]" />
               <h3 className="text-sm font-bold text-slate-900">Tùy Chọn Thuật Toán Ghép Nối</h3>
             </div>
 
@@ -317,7 +290,7 @@ export default function TTSStudio({ samples }) {
               <select
                 value={speaker}
                 onChange={(e) => setSpeaker(e.target.value)}
-                className="w-full p-2.5 rounded-lg border border-slate-300 text-sm bg-slate-50 focus:bg-white focus:ring-2 focus:ring-brand-500 outline-none"
+                className="w-full p-2.5 rounded-lg border border-slate-300 text-sm bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#005baa] outline-none"
               >
                 <option value="S01">S01 - Giọng Nam Thành Viên 1 (2,638 từ)</option>
               </select>
@@ -329,7 +302,7 @@ export default function TTSStudio({ samples }) {
                 <label className="text-xs font-semibold text-slate-700 uppercase">
                   Khoảng nghỉ giữa các từ
                 </label>
-                <span className="text-xs font-bold text-brand-600">{wordPause} ms</span>
+                <span className="text-xs font-bold text-[#005baa]">{wordPause} ms</span>
               </div>
               <input
                 type="range"
@@ -338,7 +311,7 @@ export default function TTSStudio({ samples }) {
                 step="10"
                 value={wordPause}
                 onChange={(e) => setWordPause(e.target.value)}
-                className="w-full accent-brand-600 cursor-pointer"
+                className="w-full accent-[#005baa] cursor-pointer"
               />
               <div className="flex justify-between text-[10px] text-slate-400 mt-0.5">
                 <span>0 ms</span>
@@ -348,9 +321,9 @@ export default function TTSStudio({ samples }) {
             </div>
 
             {/* Preprocessing Toggles */}
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+            <div className="p-3 bg-slate-50 border border-slate-200 space-y-3">
               <label className="text-xs font-bold text-slate-800 flex items-center space-x-1.5">
-                <Scissors className="w-4 h-4 text-brand-600" />
+                <Scissors className="w-4 h-4 text-[#005baa]" />
                 <span>Tiền xử lý âm thanh</span>
               </label>
 
@@ -359,7 +332,7 @@ export default function TTSStudio({ samples }) {
                   type="checkbox"
                   checked={useTrimmed}
                   onChange={(e) => setUseTrimmed(e.target.checked)}
-                  className="mt-0.5 rounded text-brand-600 focus:ring-brand-500 w-4 h-4"
+                  className="mt-0.5 rounded text-[#005baa] focus:ring-[#005baa] w-4 h-4"
                 />
                 <div>
                   <span className="text-xs font-semibold text-slate-700">Lọc khoảng lặng (Trim Silence RMS)</span>
@@ -372,7 +345,7 @@ export default function TTSStudio({ samples }) {
                   type="checkbox"
                   checked={useRmsNorm}
                   onChange={(e) => setUseRmsNorm(e.target.checked)}
-                  className="mt-0.5 rounded text-brand-600 focus:ring-brand-500 w-4 h-4"
+                  className="mt-0.5 rounded text-[#005baa] focus:ring-[#005baa] w-4 h-4"
                 />
                 <div>
                   <span className="text-xs font-semibold text-slate-700">Cân bằng năng lượng (RMS Normalization)</span>
@@ -385,7 +358,7 @@ export default function TTSStudio({ samples }) {
                   type="checkbox"
                   checked={useCrossfade}
                   onChange={(e) => setUseCrossfade(e.target.checked)}
-                  className="mt-0.5 rounded text-brand-600 focus:ring-brand-500 w-4 h-4"
+                  className="mt-0.5 rounded text-[#005baa] focus:ring-[#005baa] w-4 h-4"
                 />
                 <div>
                   <span className="text-xs font-semibold text-slate-700">Làm mượt điểm tiếp giáp (Crossfade 10ms)</span>
@@ -394,16 +367,6 @@ export default function TTSStudio({ samples }) {
               </label>
             </div>
 
-            {/* Theory Card */}
-            <div className="p-3 bg-brand-50 rounded-xl border border-brand-100 text-xs text-brand-800 space-y-1">
-              <div className="font-bold flex items-center space-x-1">
-                <Info className="w-3.5 h-3.5 text-brand-600" />
-                <span>Kỹ thuật Unit Concatenation:</span>
-              </div>
-              <p className="text-[11px] text-brand-700 leading-normal">
-                Phương pháp ghép nối đơn vị mức từ giữ nguyên âm sắc tự nhiên của giọng người thu âm gốc và độ chuẩn của các thanh điệu tiếng Việt.
-              </p>
-            </div>
           </div>
         </div>
 
@@ -411,4 +374,3 @@ export default function TTSStudio({ samples }) {
     </div>
   )
 }
-

@@ -60,27 +60,84 @@ def normalize_word(word: str) -> str:
     return unicodedata.normalize("NFC", word).casefold()
 
 
+def encode_word(word: str) -> str:
+    """Encode a Vietnamese word using the corpus filename convention."""
+    normalized = normalize_word(word)
+    tone_marks = {
+        "\u0301": "1",
+        "\u0300": "2",
+        "\u0309": "3",
+        "\u0303": "4",
+        "\u0323": "5",
+    }
+    structural_marks = {
+        "\u0306": "breve",
+        "\u0302": "circumflex",
+        "\u031b": "horn",
+        "\u0335": "stroke",
+    }
+    structural_replacements = {
+        ("a", "breve"): "aa",
+        ("a", "circumflex"): "a+",
+        ("e", "circumflex"): "e+",
+        ("o", "circumflex"): "o+",
+        ("o", "horn"): "oo",
+        ("u", "horn"): "uu",
+        ("d", "stroke"): "d-",
+    }
+    direct_replacements = {"đ": "d-", "Đ": "d-"}
+    tone = "0"
+    letters: list[str] = []
+    decomposed = unicodedata.normalize("NFD", normalized)
+    index = 0
+    while index < len(decomposed):
+        character = decomposed[index]
+        if unicodedata.category(character) == "Mn":
+            index += 1
+            continue
+        base = character
+        marks: list[str] = []
+        index += 1
+        while index < len(decomposed) and unicodedata.category(decomposed[index]) == "Mn":
+            marks.append(decomposed[index])
+            index += 1
+        for mark in marks:
+            if mark in tone_marks:
+                tone = tone_marks[mark]
+        structural = next(
+            (structural_marks[mark] for mark in marks if mark in structural_marks),
+            None,
+        )
+        letters.append(
+            direct_replacements.get(
+                base,
+                structural_replacements.get((base, structural), base),
+            )
+        )
+    return "".join(letters) + tone
+
+
 def word_rows(words: list[str], speaker_id: str = "S01") -> list[sqlite3.Row | None]:
     if not words:
         return []
-    normalized_words = [normalize_word(word) for word in words]
-    placeholders = ",".join("?" for _ in normalized_words)
+    encoded_words = [encode_word(word) for word in words]
+    placeholders = ",".join("?" for _ in encoded_words)
     with connection() as db:
         rows = db.execute(
             f"""
-            SELECT w.word_id, w.word, a.file_path, a.file_name,
+            SELECT w.word_id, w.word, w.encoded_word, a.file_path, a.file_name,
                    w.encoded_filename,
                    a.sample_rate, a.channels, a.sample_width_bytes,
                    a.duration_seconds
             FROM words w
             LEFT JOIN audio_records a
               ON a.word_id = w.word_id AND a.speaker_id = ?
-            WHERE w.word IN ({placeholders})
+            WHERE w.encoded_word IN ({placeholders})
             """,
-            [speaker_id, *normalized_words],
+            [speaker_id, *encoded_words],
         ).fetchall()
-    by_word = {normalize_word(row["word"]): row for row in rows}
-    return [by_word.get(word) for word in normalized_words]
+    by_encoded_word = {row["encoded_word"]: row for row in rows}
+    return [by_encoded_word.get(encoded_word) for encoded_word in encoded_words]
 
 
 def check_tokens(text: str) -> list[dict[str, Any]]:
@@ -100,6 +157,7 @@ def check_tokens(text: str) -> list[dict[str, Any]]:
                 "type": "word",
                 "available": row is not None and row["file_path"] is not None,
                 "word_id": row["word_id"] if row else None,
+                "encoded_word": row["encoded_word"] if row else encode_word(token),
                 "encoded_filename": row["encoded_filename"] if row else None,
             }
         )
@@ -120,12 +178,26 @@ def trim_samples(samples: list[int], threshold: int = 500) -> list[int]:
     return samples[non_silent[0] : non_silent[-1] + 1]
 
 
-def normalize_samples(samples: list[int]) -> list[int]:
+def normalize_samples(samples: list[int], target_rms: float = 9000.0) -> list[int]:
+    if not samples:
+        return samples
+    rms = math.sqrt(sum(value * value for value in samples) / len(samples))
+    if rms == 0:
+        return samples
     peak = max((abs(value) for value in samples), default=0)
     if peak == 0:
         return samples
-    scale = min(1.0, 28000 / peak)
+    scale = target_rms / rms
+    scale = min(scale, 30000 / peak)
     return [max(-32768, min(32767, round(value * scale))) for value in samples]
+
+
+def limit_peak(samples: list[int], maximum: int = 30000) -> list[int]:
+    peak = max((abs(value) for value in samples), default=0)
+    if peak <= maximum or peak == 0:
+        return samples
+    scale = maximum / peak
+    return [round(value * scale) for value in samples]
 
 
 def read_audio(path: Path, use_trimmed: bool, use_rms_norm: bool) -> tuple[list[int], int]:
@@ -218,15 +290,17 @@ def stats() -> dict[str, int]:
         result = db.execute(
             """
             SELECT COUNT(*) AS total_words,
-                   COUNT(a.audio_id) AS words_with_audio
+                   COUNT(DISTINCT a.audio_id) AS words_with_audio,
+                   COUNT(DISTINCT af.feature_id) AS features_count
             FROM words w
             LEFT JOIN audio_records a ON a.word_id = w.word_id
+            LEFT JOIN audio_features af ON af.audio_id = a.audio_id
             """
         ).fetchone()
     return {
         "total_words": result["total_words"],
         "words_with_audio": result["words_with_audio"],
-        "features_count": 0,
+        "features_count": result["features_count"],
     }
 
 
@@ -265,6 +339,7 @@ def synthesize(request: SynthesizeRequest) -> dict[str, Any]:
         samples_data, sample_rate, timeline = concatenate(rows, request)
     except (OSError, ValueError) as error:
         return {"success": False, "error": str(error)}
+    samples_data = limit_peak(samples_data)
     duration = len(samples_data) / sample_rate
     return {
         "success": True,
@@ -285,20 +360,9 @@ def words(
     page: int = Query(default=1, ge=1),
     limit: int = Query(default=20, ge=1, le=100),
 ) -> dict[str, Any]:
-    where = ["(w.word LIKE ? OR w.word_id LIKE ? OR w.encoded_filename LIKE ?)"]
-    params: list[Any] = [f"%{q}%", f"%{q}%", f"%{q}%"]
-    if filter_status == "audio":
-        where.append("a.audio_id IS NOT NULL")
-    elif filter_status == "missing":
-        where.append("a.audio_id IS NULL")
-    clause = " AND ".join(where)
     with connection() as db:
-        total = db.execute(
-            f"SELECT COUNT(*) FROM words w LEFT JOIN audio_records a ON a.word_id = w.word_id WHERE {clause}",
-            params,
-        ).fetchone()[0]
         rows = db.execute(
-            f"""
+            """
             SELECT w.word_id, w.word, w.encoded_filename, a.speaker_id,
                    a.duration_seconds AS duration,
                    a.sample_rate, af.rms_energy, af.f0_mean_hz,
@@ -306,15 +370,31 @@ def words(
             FROM words w
             LEFT JOIN audio_records a ON a.word_id = w.word_id
             LEFT JOIN audio_features af ON af.audio_id = a.audio_id
-            WHERE {clause}
             ORDER BY w.word_id
-            LIMIT ? OFFSET ?
-            """,
-            [*params, limit, (page - 1) * limit],
+            """
         ).fetchall()
+    normalized_query = normalize_word(q.strip()) if q.strip() else ""
+    filtered_rows = [
+        row
+        for row in rows
+        if (
+            not normalized_query
+            or normalized_query in normalize_word(row["word"])
+            or normalized_query in normalize_word(row["word_id"])
+            or normalized_query in normalize_word(row["encoded_filename"])
+        )
+        and (
+            filter_status == "all"
+            or (filter_status == "audio" and row["has_audio"])
+            or (filter_status == "missing" and not row["has_audio"])
+        )
+    ]
+    total = len(filtered_rows)
+    start = (page - 1) * limit
+    page_rows = filtered_rows[start : start + limit]
     total_pages = max(1, math.ceil(total / limit))
     return {
-        "items": [dict(row) for row in rows],
+        "items": [dict(row) for row in page_rows],
         "total": total,
         "page": page,
         "limit": limit,

@@ -216,7 +216,7 @@ export default function FeatureVisualizer({ selectedWordId, setSelectedWordId })
               onChange={(e) => setSearchText(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') analyzeInput() }}
               placeholder="Tìm theo từ hoặc tên file mã hóa..."
-              className="pl-9 pr-3 py-1.5 text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 outline-none w-64"
+              className="pl-9 pr-3 py-1.5 text-sm rounded border border-slate-300 focus:ring-2 focus:ring-[#005baa] outline-none w-64"
             />
             {suggestions.length > 0 && (
               <div className="absolute left-0 right-0 top-full mt-1 z-20 bg-white border border-slate-200 rounded-lg shadow-lg overflow-hidden">
@@ -225,7 +225,7 @@ export default function FeatureVisualizer({ selectedWordId, setSelectedWordId })
                     key={item.word_id}
                     type="button"
                     onClick={() => selectWord(item)}
-                    className="w-full px-3 py-2 text-left hover:bg-brand-50 flex items-center justify-between"
+                    className="w-full px-3 py-2 text-left hover:bg-[#e6f2fb] flex items-center justify-between"
                   >
                     <span className="text-sm font-semibold text-slate-800">{item.word}</span>
                     <span className="text-xs font-mono text-slate-400">{item.encoded_filename}</span>
@@ -236,7 +236,7 @@ export default function FeatureVisualizer({ selectedWordId, setSelectedWordId })
           </div>
           <button
             onClick={analyzeInput}
-            className="px-4 py-1.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold rounded-lg transition"
+            className="px-4 py-1.5 bg-[#005baa] hover:bg-[#004987] text-white text-xs font-semibold rounded transition"
           >
             {isLoading ? 'Đang tải...' : 'Xem Phân Tích'}
           </button>
@@ -253,12 +253,12 @@ export default function FeatureVisualizer({ selectedWordId, setSelectedWordId })
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
               <span className="text-xs font-bold text-slate-400 uppercase">Từ Đang Chọn</span>
-              <div className="text-2xl font-black text-brand-600 mt-1">{featureData.word} ({featureData.encoded_filename})</div>
+              <div className="text-2xl font-black text-[#005baa] mt-1">{featureData.word} ({featureData.encoded_filename})</div>
               <span className="text-xs text-slate-500">Thời lượng: {featureData.duration}s | {featureData.sample_rate} Hz</span>
             </div>
             <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
               <span className="text-xs font-bold text-slate-400 uppercase">Cao Độ Cơ Bản (F0 Mean)</span>
-              <div className="text-2xl font-black text-indigo-600 mt-1">{featureData.f0_mean_hz ? `${featureData.f0_mean_hz} Hz` : 'N/A'}</div>
+              <div className="text-2xl font-black text-[#005baa] mt-1">{featureData.f0_mean_hz ? `${featureData.f0_mean_hz} Hz` : 'N/A'}</div>
               <span className="text-xs text-slate-500">Hữu thanh: {Math.round(featureData.f0_voiced_fraction * 100)}%</span>
             </div>
             <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
@@ -277,7 +277,7 @@ export default function FeatureVisualizer({ selectedWordId, setSelectedWordId })
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-3">
               <h3 className="text-sm font-bold text-slate-900 flex items-center space-x-1.5">
-                <Activity className="w-4 h-4 text-brand-600" />
+                <Activity className="w-4 h-4 text-[#005baa]" />
                 <span>Dạng Sóng Âm Thanh (Waveform Envelope)</span>
               </h3>
               <div className="h-56">
@@ -287,7 +287,7 @@ export default function FeatureVisualizer({ selectedWordId, setSelectedWordId })
 
             <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-3">
               <h3 className="text-sm font-bold text-slate-900 flex items-center space-x-1.5">
-                <TrendingUp className="w-4 h-4 text-indigo-600" />
+                <TrendingUp className="w-4 h-4 text-[#005baa]" />
                 <span>Đường Cong Cao Độ F0 (Pitch Contour)</span>
               </h3>
               <div className="h-56">

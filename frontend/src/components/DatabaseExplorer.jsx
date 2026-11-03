@@ -47,14 +47,14 @@ export default function DatabaseExplorer({ onInspectFeature, onPlayAudio }) {
               value={query}
               onChange={(e) => { setQuery(e.target.value); setPage(1); }}
               placeholder="Tìm theo từ hoặc tên file mã hóa (ví dụ: ba, ba0.wav)..."
-              className="w-full pl-9 pr-3 py-2 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-brand-500 outline-none"
+              className="w-full pl-9 pr-3 py-2 text-sm rounded border border-slate-300 focus:ring-2 focus:ring-[#005baa] outline-none"
             />
           </div>
 
           <select
             value={filterStatus}
             onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}
-            className="p-2 text-sm rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-brand-500 outline-none"
+            className="p-2 text-sm rounded border border-slate-300 bg-white focus:ring-2 focus:ring-[#005baa] outline-none"
           >
             <option value="all">Tất cả từ (7,184)</option>
             <option value="audio">Đã có file thu âm (2,638)</option>
@@ -101,7 +101,7 @@ export default function DatabaseExplorer({ onInspectFeature, onPlayAudio }) {
                   <td className="px-4 py-3 text-xs">{row.duration ? row.duration + ' s' : '-'}</td>
                   <td className="px-4 py-3 text-xs font-mono">{row.sample_rate ? row.sample_rate + ' Hz' : '-'}</td>
                   <td className="px-4 py-3 text-xs font-mono">{row.rms_energy ?? '-'}</td>
-                  <td className="px-4 py-3 text-xs font-mono text-indigo-600 font-semibold">{row.f0_mean_hz ? row.f0_mean_hz + ' Hz' : '-'}</td>
+                  <td className="px-4 py-3 text-xs font-mono text-[#005baa] font-semibold">{row.f0_mean_hz ? row.f0_mean_hz + ' Hz' : '-'}</td>
                   <td className="px-4 py-3">
                     {row.has_audio ? (
                       <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-emerald-100 text-emerald-800">
@@ -118,7 +118,7 @@ export default function DatabaseExplorer({ onInspectFeature, onPlayAudio }) {
                       <>
                         <button
                           onClick={() => onPlayAudio(row.word_id, row.word, row.duration)}
-                          className="px-2.5 py-1 text-xs font-semibold bg-brand-50 hover:bg-brand-100 text-brand-700 rounded-lg transition inline-flex items-center space-x-1"
+                          className="px-2.5 py-1 text-xs font-semibold bg-[#e6f2fb] hover:bg-[#cce5f7] text-[#005baa] rounded transition inline-flex items-center space-x-1"
                         >
                           <Play className="w-3 h-3 fill-current" />
                           <span>Nghe</span>
