@@ -127,7 +127,7 @@ def word_rows(words: list[str], speaker_id: str = "S01") -> list[sqlite3.Row | N
             f"""
             SELECT w.word_id, w.word, w.encoded_word, a.file_path, a.file_name,
                    w.encoded_filename,
-                   a.sample_rate, a.channels, a.sample_width_bytes,
+                   a.sample_rate,
                    a.duration_seconds
             FROM words w
             LEFT JOIN audio_records a
@@ -140,25 +140,43 @@ def word_rows(words: list[str], speaker_id: str = "S01") -> list[sqlite3.Row | N
     return [by_encoded_word.get(encoded_word) for encoded_word in encoded_words]
 
 
-def check_tokens(text: str) -> list[dict[str, Any]]:
+def resolve_word(token: str, speaker_id: str = "S01") -> tuple[list[sqlite3.Row], bool, list[str]]:
+    direct_row = word_rows([token], speaker_id)[0]
+    if direct_row is not None and direct_row["file_path"] is not None:
+        return [direct_row], False, []
+
+    characters = list(normalize_word(token))
+    character_rows = word_rows(characters, speaker_id)
+    missing = [
+        character
+        for character, row in zip(characters, character_rows)
+        if row is None or row["file_path"] is None
+    ]
+    if missing:
+        return [], True, missing
+    return [row for row in character_rows if row is not None], True, []
+
+
+def check_tokens(text: str, speaker_id: str = "S01") -> list[dict[str, Any]]:
     pairs = tokenize(text)
-    words = [token for kind, token in pairs if kind == "word"]
-    rows = word_rows(words)
-    row_index = iter(rows)
     result = []
     for kind, token in pairs:
         if kind == "punct":
             result.append({"token": token, "type": "punct", "available": True})
             continue
-        row = next(row_index)
+        rows, fallback, missing_characters = resolve_word(token, speaker_id)
+        row = rows[0] if rows else None
         result.append(
             {
                 "token": token,
                 "type": "word",
-                "available": row is not None and row["file_path"] is not None,
+                "available": bool(rows) and not missing_characters,
                 "word_id": row["word_id"] if row else None,
                 "encoded_word": row["encoded_word"] if row else encode_word(token),
                 "encoded_filename": row["encoded_filename"] if row else None,
+                "fallback_spelling": fallback,
+                "spelling": [character for character in normalize_word(token)] if fallback else [],
+                "missing_characters": missing_characters,
             }
         )
     return result
@@ -325,8 +343,12 @@ def check(request: CheckRequest) -> dict[str, Any]:
 
 @app.post("/api/tts/synthesize")
 def synthesize(request: SynthesizeRequest) -> dict[str, Any]:
-    tokens = check_tokens(request.text)
-    missing = [token["token"] for token in tokens if token["type"] == "word" and not token["available"]]
+    tokens = check_tokens(request.text, request.speaker_id)
+    missing = [
+        token["token"]
+        for token in tokens
+        if token["type"] == "word" and not token["available"]
+    ]
     if missing:
         return {
             "success": False,
@@ -334,7 +356,12 @@ def synthesize(request: SynthesizeRequest) -> dict[str, Any]:
             "missing_words": missing,
         }
 
-    rows = [row for row in word_rows([token["token"] for token in tokens if token["type"] == "word"]) if row]
+    rows = []
+    for token in tokens:
+        if token["type"] != "word":
+            continue
+        token_rows, _, _ = resolve_word(token["token"], request.speaker_id)
+        rows.extend(token_rows)
     try:
         samples_data, sample_rate, timeline = concatenate(rows, request)
     except (OSError, ValueError) as error:
@@ -347,7 +374,8 @@ def synthesize(request: SynthesizeRequest) -> dict[str, Any]:
         "meta": {
             "sample_rate": sample_rate,
             "duration": round(duration, 4),
-            "total_words": len(rows),
+            "total_words": sum(token["type"] == "word" for token in tokens),
+            "total_units": len(rows),
             "timeline": timeline,
         },
     }

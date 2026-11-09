@@ -14,6 +14,7 @@ DEFAULT_CSV = ROOT / "metadata_encoded.csv"
 DEFAULT_AUDIO_DIR = ROOT / "metadata"
 DEFAULT_DB = Path(__file__).resolve().parent / "vietvoice.db"
 DEFAULT_SCHEMA = Path(__file__).resolve().parent / "schema.sql"
+EXCLUDED_WORD_IDS = {"W01856", "W01857", "W01858"}
 
 
 def physical_audio_path(audio_dir: Path, encoded_filename: str) -> Path:
@@ -38,10 +39,7 @@ def read_wave_metadata(path: Path) -> dict[str, int | float]:
         frame_rate = audio.getframerate()
         frame_count = audio.getnframes()
         return {
-            "channels": audio.getnchannels(),
             "sample_rate": frame_rate,
-            "sample_width_bytes": audio.getsampwidth(),
-            "frame_count": frame_count,
             "duration_seconds": frame_count / frame_rate if frame_rate else None,
         }
 
@@ -58,11 +56,18 @@ def create_database(
         raise FileNotFoundError(f"Audio directory not found: {audio_dir}")
 
     rows = read_metadata(csv_path)
-    used_encoded_names: set[str] = set()
     db_path.parent.mkdir(parents=True, exist_ok=True)
 
     with sqlite3.connect(db_path) as connection:
         connection.execute("PRAGMA foreign_keys = ON")
+        connection.executescript(
+            """
+            DROP TABLE IF EXISTS audio_features;
+            DROP TABLE IF EXISTS audio_records;
+            DROP TABLE IF EXISTS words;
+            DROP TABLE IF EXISTS speakers;
+            """
+        )
         connection.executescript(schema_path.read_text(encoding="utf-8"))
         connection.execute("DELETE FROM audio_features")
         connection.execute("DELETE FROM audio_records")
@@ -70,57 +75,51 @@ def create_database(
         connection.execute("DELETE FROM speakers")
         connection.execute(
             """
-            INSERT INTO speakers (speaker_id, name, description)
-            VALUES (?, ?, ?)
+            INSERT INTO speakers (speaker_id, name)
+            VALUES (?, ?)
             """,
-            ("S01", "Thành viên 1", "Speaker mặc định của corpus hiện tại"),
+            ("S01", "Thành viên 1"),
         )
 
         audio_count = 0
         for row in rows:
             word_id = row["ID"].strip()
+            if word_id in EXCLUDED_WORD_IDS:
+                continue
             encoded_filename = row["Ten_File_Ma_Hoa"].strip()
             audio_path = physical_audio_path(audio_dir, encoded_filename)
-            has_unique_audio_owner = encoded_filename not in used_encoded_names
             connection.execute(
                 """
                 INSERT INTO words (
-                    word_id, word, encoded_word, encoded_filename, validation_status
-                ) VALUES (?, ?, ?, ?, ?)
+                    word_id, word, encoded_word, encoded_filename
+                ) VALUES (?, ?, ?, ?)
                 """,
                 (
                     word_id,
                     row["Từ vựng"].strip(),
                     row["Tu_Ma_Hoa"].strip(),
                     row["Ten_File_Ma_Hoa"].strip(),
-                    row["Validation_Status"].strip(),
                 ),
             )
 
-            if not audio_path.is_file() or not has_unique_audio_owner:
+            if not audio_path.is_file():
                 continue
 
-            used_encoded_names.add(encoded_filename)
             wave_data = read_wave_metadata(audio_path)
             connection.execute(
                 """
                 INSERT INTO audio_records (
-                    word_id, speaker_id, file_path, file_name, channels,
-                    sample_rate, sample_width_bytes, frame_count,
-                    duration_seconds, file_size_bytes
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    word_id, speaker_id, file_path, file_name,
+                    sample_rate, duration_seconds
+                ) VALUES (?, ?, ?, ?, ?, ?)
                 """,
                 (
                     word_id,
                     "S01",
                     str(audio_path.relative_to(ROOT)),
                     audio_path.name,
-                    wave_data["channels"],
                     wave_data["sample_rate"],
-                    wave_data["sample_width_bytes"],
-                    wave_data["frame_count"],
                     wave_data["duration_seconds"],
-                    audio_path.stat().st_size,
                 ),
             )
             audio_count += 1

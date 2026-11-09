@@ -56,8 +56,8 @@ export default function DatabaseExplorer({ onInspectFeature, onPlayAudio }) {
             onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}
             className="p-2 text-sm rounded border border-slate-300 bg-white focus:ring-2 focus:ring-[#005baa] outline-none"
           >
-            <option value="all">Tất cả từ (7,184)</option>
-            <option value="audio">Đã có file thu âm (2,638)</option>
+            <option value="all">Tất cả từ</option>
+            <option value="audio">Đã có file thu âm</option>
             <option value="missing">Chưa thu âm (Thiếu audio)</option>
           </select>
         </div>

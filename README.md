@@ -58,9 +58,11 @@ chuyển repository mà không phải sửa toàn bộ dữ liệu. Script có t
 nó sẽ nạp lại dữ liệu từ đầu.
 
 Các file trong thư mục `metadata` đã được đổi từ dạng `Wxxxxx.wav` sang tên trong
-cột `Ten_File_Ma_Hoa` của CSV. Có 3 tên mã hóa bị trùng trong CSV; mỗi file audio
-hiện có chỉ được liên kết với bản ghi đầu tiên có audio để tránh một file bị gán cho
-hai từ.
+cột `Ten_File_Ma_Hoa` của CSV. Có 3 tên mã hóa bị trùng trong CSV (`gia1.wav`, `gia2.wav`, `gia3.wav`).
+Các bản ghi tương ứng cùng dùng đúng file WAV đang có trong `metadata`; một file
+vật lý có thể được liên kết với nhiều từ trong CSDL.
+Ba bản ghi `gìa`, `gỉa`, `gía` được loại khỏi CSDL; hệ thống chỉ giữ `già`,
+`giả`, `giá` tương ứng với `gia2.wav`, `gia3.wav`, `gia1.wav`.
 
 ## 3. Chạy backend
 
@@ -87,6 +89,10 @@ quy ước corpus (ví dụ `cá` thành `ca1`, `con` thành `con0`), rồi tra 
 Tùy chọn cân bằng âm lượng dùng chuẩn hóa RMS thật sự cho từng đoạn audio, có
 giới hạn peak để tránh clipping sau khi ghép. Quy trình này điều chỉnh độ to,
 không thay đổi cao độ hay tốc độ phát âm.
+
+Nếu một từ không có audio nguyên vẹn, backend sẽ thử tách từ thành từng ký tự
+và tra cứu các audio ký tự đó để ghép đọc (ví dụ `mâng` thành `m â n g`).
+Nếu một ký tự cũng không có audio, API trả về từ thiếu thay vì bỏ qua âm thanh.
 
 Mở một terminal riêng tại thư mục repository:
 

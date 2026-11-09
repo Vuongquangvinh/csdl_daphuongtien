@@ -3,7 +3,6 @@ import Header from './components/Header.jsx'
 import TTSStudio from './components/TTSStudio.jsx'
 import DatabaseExplorer from './components/DatabaseExplorer.jsx'
 import FeatureVisualizer from './components/FeatureVisualizer.jsx'
-import ArchitectureDocs from './components/ArchitectureDocs.jsx'
 
 export default function AppShell() {
   const [activeTab, setActiveTab] = useState('tts')
@@ -12,18 +11,12 @@ export default function AppShell() {
     words_with_audio: 0,
     features_count: 0,
   })
-  const [samples, setSamples] = useState([])
   const [selectedWordId, setSelectedWordId] = useState(null)
 
   useEffect(() => {
-    Promise.all([
-      fetch('/api/stats').then((response) => response.json()),
-      fetch('/api/samples').then((response) => response.json()),
-    ])
-      .then(([statsData, samplesData]) => {
-        setStats(statsData)
-        setSamples(samplesData)
-      })
+    fetch('/api/stats')
+      .then((response) => response.json())
+      .then((statsData) => setStats(statsData))
       .catch((error) => console.error('Failed to load application data', error))
   }, [])
 
@@ -54,7 +47,7 @@ export default function AppShell() {
     <div className="min-h-screen bg-slate-50 text-slate-800">
       <Header stats={stats} activeTab={activeTab} setActiveTab={setActiveTab} />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {activeTab === 'tts' && <TTSStudio samples={samples} />}
+        {activeTab === 'tts' && <TTSStudio />}
         {activeTab === 'db' && (
           <DatabaseExplorer
             onInspectFeature={inspectFeature}
@@ -67,7 +60,6 @@ export default function AppShell() {
             setSelectedWordId={setSelectedWordId}
           />
         )}
-        {activeTab === 'architecture' && <ArchitectureDocs />}
       </main>
     </div>
   )

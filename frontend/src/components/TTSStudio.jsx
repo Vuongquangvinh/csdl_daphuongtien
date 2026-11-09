@@ -164,12 +164,16 @@ export default function TTSStudio() {
                       {t.token}
                     </span>
                   ) : t.available ? (
-                    <span key={idx} className="px-2 py-0.5 text-xs font-semibold bg-emerald-100 text-emerald-800 rounded border border-emerald-200">
-                      ✓ {t.token}
+                    <span
+                      key={idx}
+                      className="px-2 py-0.5 text-xs font-semibold bg-emerald-100 text-emerald-800 rounded border border-emerald-200"
+                      title={t.fallback_spelling ? `Không có từ nguyên vẹn; đọc theo từng ký tự: ${t.spelling.join(' ')}` : 'Có audio trong CSDL'}
+                    >
+                      {t.token}
                     </span>
                   ) : (
                     <span key={idx} className="px-2 py-0.5 text-xs font-semibold bg-rose-100 text-rose-800 rounded border border-rose-300" title="Chưa có file audio trong CSDL">
-                      ✗ {t.token}
+                      {t.token}
                     </span>
                   )
                 ))}
@@ -292,7 +296,7 @@ export default function TTSStudio() {
                 onChange={(e) => setSpeaker(e.target.value)}
                 className="w-full p-2.5 rounded-lg border border-slate-300 text-sm bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#005baa] outline-none"
               >
-                <option value="S01">S01 - Giọng Nam Thành Viên 1 (2,638 từ)</option>
+                <option value="S01">S01 - Giọng Nam Thành Viên 1</option>
               </select>
             </div>
 
