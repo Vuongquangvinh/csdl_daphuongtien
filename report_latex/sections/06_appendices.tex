@@ -1,0 +1,112 @@
+\section*{PHỤ LỤC}
+\addcontentsline{toc}{section}{PHỤ LỤC}
+
+\subsection*{Phụ lục A. Bảng quy tắc chuyển đổi ký tự tiếng Việt sang mã định danh VNI}
+\label{app:vni_mapping_table}
+
+Bảng A.1 tổng hợp quy tắc ánh xạ hai chiều giữa chữ cái tiếng Việt có dấu và mã ký tự ASCII theo chuẩn VNI được ứng dụng trong toàn bộ hệ thống VietVoice TTS.
+
+\begin{table}[H]
+\centering
+\caption*{Bảng A.1. Quy tắc ánh xạ nguyên âm, phụ âm và dấu thanh tiếng Việt sang mã VNI}
+\vspace{2pt}
+\begin{tabularx}{\textwidth}{p{2.6cm}p{1.8cm}p{4.2cm}p{2.4cm}X}
+\toprule
+\textbf{Nhóm ký tự} & \textbf{Ký tự gốc} & \textbf{Tên gọi cấu trúc / thanh} & \textbf{Quy tắc VNI} & \textbf{Từ vựng minh họa} \\
+\midrule
+\multirow{7}{*}{\textbf{Ký tự cấu trúc}} 
+& â / Â & Nguyên âm a dấu nón & \texttt{a+} & ấm $\to$ \texttt{a+m1} \\
+& ă / Ă & Nguyên âm a dấu trăng & \texttt{aa} & ăn $\to$ \texttt{aan0} \\
+& ê / Ê & Nguyên âm e dấu nón & \texttt{e+} & đêm $\to$ \texttt{d-e+m0} \\
+& ô / Ô & Nguyên âm o dấu nón & \texttt{o+} & bốn $\to$ \texttt{bo+n1} \\
+& ơ / Ơ & Nguyên âm o dấu móc & \texttt{oo} & cơm $\to$ \texttt{coom0} \\
+& ư / Ư & Nguyên âm u dấu móc & \texttt{uu} & mực $\to$ \texttt{muuc5} \\
+& đ / Đ & Phụ âm đ gạch ngang & \texttt{d-} & đi $\to$ \texttt{d-i0} \\
+\midrule
+\multirow{6}{*}{\textbf{Thanh điệu}} 
+& Không dấu & Thanh Ngang (thanh 0) & Đuôi số \texttt{0} & hoa $\to$ \texttt{hoa0} \\
+& Dấu sắc & Thanh Sắc (thanh 1) & Đuôi số \texttt{1} & má $\to$ \texttt{ma1} \\
+& Dấu huyền & Thanh Huyền (thanh 2) & Đuôi số \texttt{2} & nhà $\to$ \texttt{nha2} \\
+& Dấu hỏi & Thanh Hỏi (thanh 3) & Đuôi số \texttt{3} & quả $\to$ \texttt{qua3} \\
+& Dấu ngã & Thanh Ngã (thanh 4) & Đuôi số \texttt{4} & sữa $\to$ \texttt{suua4} \\
+& Dấu nặng & Thanh Nặng (thanh 5) & Đuôi số \texttt{5} & mẹ $\to$ \texttt{me5} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection*{Phụ lục B. Từ điển dữ liệu chi tiết của Cơ sở dữ liệu SQLite (vietvoice.db)}
+\label{app:data_dictionary}
+
+Bảng B.1 mô tả chi tiết từ điển dữ liệu (Data Dictionary), bao gồm các trường, kiểu dữ liệu, ràng buộc toàn vẹn và ý nghĩa nghiệp vụ của 4 bảng quan hệ trong cơ sở dữ liệu.
+
+\begin{table}[H]
+\centering
+\caption*{Bảng B.1. Từ điển dữ liệu của hệ quản trị CSDL VietVoice TTS}
+\vspace{2pt}
+\begin{tabularx}{\textwidth}{p{2.4cm}p{3.2cm}p{1.4cm}p{2.4cm}X}
+\toprule
+\textbf{Tên bảng} & \textbf{Tên cột} & \textbf{Kiểu} & \textbf{Ràng buộc} & \textbf{Mô tả ý nghĩa} \\
+\midrule
+\texttt{speakers} & \texttt{speaker\_id} & \texttt{TEXT} & PRIMARY KEY & Mã định danh duy nhất của người đọc. \\
+& \texttt{name} & \texttt{TEXT} & NOT NULL & Họ tên hoặc danh xưng người đọc. \\
+& \texttt{description} & \texttt{TEXT} & NULL & Ghi chú thông tin về chất giọng, vùng miền. \\
+\midrule
+\texttt{words} & \texttt{word\_id} & \texttt{TEXT} & PRIMARY KEY & Mã định danh duy nhất của từ. \\
+& \texttt{word} & \texttt{TEXT} & NOT NULL & Từ tiếng Việt gốc có dấu (chuẩn Unicode). \\
+& \texttt{encoded\_word} & \texttt{TEXT} & INDEXED & Chuỗi mã hóa VNI phục vụ đối sánh nhanh. \\
+& \texttt{encoded\_filename} & \texttt{TEXT} & NULL & Tên tệp âm thanh tương ứng trên đĩa. \\
+\midrule
+\texttt{audio\_records} & \texttt{audio\_id} & \texttt{INTEGER} & PRIMARY KEY & Khóa chính tự tăng của bản ghi âm thanh. \\
+& \texttt{word\_id} & \texttt{TEXT} & FOREIGN KEY & Liên kết đến bảng \texttt{words} (\texttt{CASCADE}). \\
+& \texttt{speaker\_id} & \texttt{TEXT} & FOREIGN KEY & Liên kết đến bảng \texttt{speakers}. \\
+& \texttt{file\_path} & \texttt{TEXT} & UNIQUE & Đường dẫn tương đối đến tệp WAV. \\
+& \texttt{sample\_rate} & \texttt{INTEGER} & DEFAULT 22050 & Tần số lấy mẫu âm thanh (Hz). \\
+& \texttt{duration\_seconds} & \texttt{REAL} & NOT NULL & Thời lượng phát âm thanh (giây). \\
+\midrule
+\texttt{audio\_features} & \texttt{feature\_id} & \texttt{INTEGER} & PRIMARY KEY & Khóa chính tự tăng của bản ghi đặc trưng. \\
+& \texttt{audio\_id} & \texttt{INTEGER} & UNIQUE, FK & Liên kết trực tiếp 1-1 với \texttt{audio\_records}. \\
+& \texttt{rms\_energy} & \texttt{REAL} & NOT NULL & Năng lượng hiệu dụng trung bình. \\
+& \texttt{peak\_amplitude} & \texttt{REAL} & NOT NULL & Biên độ đỉnh cực đại của tín hiệu. \\
+& \texttt{zcr\_mean} & \texttt{REAL} & NOT NULL & Tần suất cắt qua điểm không trung bình. \\
+& \texttt{f0\_mean\_hz} & \texttt{REAL} & NULL & Cao độ cơ bản trung bình (Hz). \\
+& \texttt{mfcc\_mean\_json} & \texttt{TEXT} & NOT NULL & Chuỗi JSON chứa vector 13 hệ số MFCC. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection*{Phụ lục C. Bảng tổng hợp tham số cấu hình hệ thống DSP và âm học}
+\label{app:dsp_parameters}
+
+Bảng C.1 liệt kê toàn bộ các tham số kỹ thuật được cấu hình cố định hoặc mặc định trong các mô-đun xử lý tín hiệu số và giao diện người dùng của VietVoice TTS.
+
+\begin{table}[H]
+\centering
+\caption*{Bảng C.1. Tham số cấu hình thuật toán DSP và âm học trong VietVoice TTS}
+\vspace{2pt}
+\begin{tabularx}{\textwidth}{p{3.2cm}p{3.4cm}p{2.3cm}X}
+\toprule
+\textbf{Mô-đun} & \textbf{Tên tham số} & \textbf{Giá trị chuẩn} & \textbf{Ý nghĩa kỹ thuật} \\
+\midrule
+\multirow{4}{*}{\textbf{Định dạng âm thanh}} 
+& Tần số lấy mẫu ($f_s$) & 22.050 Hz & Chuẩn âm học giọng nói, cân bằng chất lượng/dung lượng \\
+& Định dạng mẫu & PCM 16-bit & Độ sâu bit chuẩn (giá trị $-32.768$ đến $32.767$) \\
+& Số kênh âm thanh & 1 kênh (Mono) & Đảm bảo đồng nhất pha âm thanh khi ghép nối \\
+& Định dạng tệp & RIFF/WAV & Tương thích trực tiếp trên các trình duyệt hiện đại \\
+\midrule
+\multirow{5}{*}{\textbf{Tiền xử lý \& DSP}} 
+& Ngưỡng cắt khoảng lặng & 500 & Biên độ ngưỡng phát hiện âm thanh có ích (Silence Trimming) \\
+& Năng lượng RMS đích & 9.000 & Mức năng lượng chuẩn hóa đồng đều âm lượng giữa các từ \\
+& Giới hạn biên độ đỉnh & 30.000 & Ngưỡng Peak Limiter chống hiện tượng xén ngọn (clipping) \\
+& Thời lượng Cross-fade & 10 ms & Quãng làm mờ chéo tuyến tính tại biên giới hai từ \\
+& Khoảng dừng giữa hai từ & 120 ms & Quãng nghỉ sinh lý mô phỏng nhịp điệu phát âm tự nhiên \\
+\midrule
+\multirow{6}{*}{\textbf{Trích xuất đặc trưng}} 
+& Kích thước khung ($N$) & 1.024 mẫu & Thời lượng khung tương đương $\approx 46{,}4$ ms tại 22.050 Hz \\
+& Bước nhảy khung ($H$) & 256 mẫu & Bước trượt phân tích khung tương đương $\approx 11{,}6$ ms \\
+& Hàm cửa sổ & Hanning & Giảm thiểu hiện tượng rò rỉ phổ tần số (Spectral Leakage) \\
+& Dải tần số cao độ $F_0$ & 50 -- 500 Hz & Dải tần sinh học thanh môn con người dùng cho tự tương quan \\
+& Số bộ lọc Mel & 26 bộ lọc & Ngân hàng bộ lọc tam giác mô phỏng ốc tai người \\
+& Số hệ số MFCC & 13 hệ số & Trích xuất qua biến đổi DCT-II lấy 13 chiều phổ chính \\
+\bottomrule
+\end{tabularx}
+\end{table}

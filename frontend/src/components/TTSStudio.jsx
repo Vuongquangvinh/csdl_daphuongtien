@@ -317,10 +317,10 @@ export default function TTSStudio() {
                 onChange={(e) => setWordPause(e.target.value)}
                 className="w-full accent-[#005baa] cursor-pointer"
               />
-              <div className="flex justify-between text-[10px] text-slate-400 mt-0.5">
-                <span>0 ms</span>
-                <span>120 ms (Chuẩn)</span>
-                <span>400 ms</span>
+              <div className="relative h-4 mt-0.5 text-[10px] text-slate-400">
+                <span className="absolute left-0">0 ms</span>
+                <span className="absolute left-[30%] -translate-x-1/2">120 ms (Chuẩn)</span>
+                <span className="absolute right-0">400 ms</span>
               </div>
             </div>
 

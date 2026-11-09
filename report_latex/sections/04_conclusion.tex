@@ -1,0 +1,21 @@
+\section{KẾT LUẬN VÀ HƯỚNG PHÁT TRIỂN}
+
+\subsection{Kết luận}
+Nghiên cứu đã xây dựng thành công hệ thống tổng hợp tiếng nói tiếng Việt mức từ dựa trên cơ sở dữ liệu đa phương tiện, tích hợp quy trình xử lý tín hiệu số chuyên sâu và giao diện Web thời gian thực. Bằng việc đề xuất cơ chế mã hóa VNI hai chiều kết hợp hệ quản trị SQLite bốn bảng chuẩn hóa, hệ thống đạt tốc độ tra cứu và tổng hợp siêu tốc với hệ số thời gian thực $\text{RTF} < 0{,}04$, đảm bảo âm thanh phát ra rõ nét và bảo toàn chính xác sáu thanh điệu tiếng Việt. Nghiên cứu khẳng định tính khả thi của việc ứng dụng kỹ thuật ghép nối mượt mà bằng cắt khoảng lặng, chuẩn hóa năng lượng RMS và làm mờ chéo tuyến tính trong việc triệt tiêu tiếng ồn biên giới từ. Mặc dù còn hạn chế về tính liền mạch của ngữ điệu câu và hiện tượng từ ngoài kho ngữ liệu, đề tài đã đáp ứng trọn vẹn các yêu cầu khoa học của học phần Cơ sở dữ liệu đa phương tiện, mở ra giải pháp gọn nhẹ, hiệu quả cho các bài toán giao tiếp người -- máy cục bộ.
+
+\subsection{Hướng phát triển tiếp theo}
+Nhằm khắc phục các hạn chế âm học cố hữu và nâng tầm hệ thống, nhóm nghiên cứu đề xuất bốn định hướng phát triển trọng tâm:
+\begin{enumerate}
+    \item \textbf{Ứng dụng thuật toán điều chỉnh cao độ và trường độ PSOLA}: Cài đặt kỹ thuật biến đổi thời gian và tần số dựa trên pha tức thời như TD-PSOLA (\textit{Time-Domain Pitch-Synchronous Overlap and Add}) hoặc WSOLA (\textit{Waveform Similarity Overlap and Add}) (Dutoit, 1997). Kỹ thuật này cho phép nắn chỉnh đường cong cao độ $F_0$ và kéo dãn/co ngắn trường độ của các từ mà không làm thay đổi âm sắc gốc, từ đó tạo ra ngữ điệu lên xuống tự nhiên cho toàn câu.
+    \item \textbf{Chuyển dịch đơn vị tổng hợp xuống mức nửa âm tiết hoặc âm vị (Diphone/Demisyllable)}: Thay vì lưu trữ từ nguyên vẹn, hệ thống sẽ lưu trữ kho ngữ liệu các cặp âm vị (diphone) hoặc nửa âm tiết kết hợp thuật toán chọn đơn vị tối ưu (\textit{Unit Selection} dựa trên chi phí mục tiêu Target Cost và chi phí nối Concatenation Cost) (Hunt và Black, 1996). Hướng tiếp cận này giúp giải quyết triệt để vấn đề từ ngoài ngữ liệu (OOV) với số lượng đơn vị lưu trữ chỉ khoảng 1.200 đến 1.500 mẫu âm thanh.
+    \item \textbf{Mở rộng kho ngữ liệu đa người nói và đa phương ngữ}: Thu âm bổ sung các giọng đọc nam, nữ và các phương ngữ đại diện cho ba miền Bắc, Trung, Nam nhằm làm phong phú cơ sở dữ liệu đa phương tiện và tăng cường tính cá nhân hóa cho người dùng.
+    \item \textbf{Tích hợp mô hình ngôn ngữ dự đoán ngữ điệu}: Sử dụng mô hình ngôn ngữ thống kê hoặc mạng nơ-ron nhỏ để tự động phân tích cú pháp câu, dự đoán trọng âm logic và xác định vị trí đặt dấu ngắt nghỉ phù hợp theo ngữ cảnh biểu đạt.
+\end{enumerate}
+
+\subsection{Phạm vi Sử dụng Trí tuệ Nhân tạo (AI Disclosure Statement)}
+Tuân thủ nghiêm ngặt các quy định về liêm chính học thuật, nhóm nghiên cứu minh bạch tuyên bố phạm vi ứng dụng các công cụ trí tuệ nhân tạo (AI) trong quá trình thực hiện đề tài như sau:
+\begin{itemize}
+    \item \textbf{Các nội dung do nhóm nghiên cứu tự chủ trì thực hiện}: Nhóm sinh viên tự xác định mục tiêu và phạm vi đề tài; tự tổ chức thu thập, làm sạch và chuẩn hóa ngữ liệu âm thanh thực tế; thiết kế cấu trúc cơ sở dữ liệu đa phương tiện SQLite; lập trình toàn bộ logic nghiệp vụ của backend FastAPI và giao diện frontend ReactJS; thực hiện đo đạc, thực nghiệm và phân tích số liệu đánh giá.
+    \item \textbf{Các nội dung có sự hỗ trợ của công cụ AI}: Công cụ trí tuệ nhân tạo hội thoại được sử dụng với vai trò trợ lý kỹ thuật hỗ trợ tra cứu cú pháp các thư viện xử lý tín hiệu (NumPy, SciPy, Librosa), tư vấn cấu trúc tối ưu cho các câu lệnh truy vấn SQL, hỗ trợ định dạng mã nguồn và tham khảo các cách diễn đạt học thuật trong văn phong báo cáo. Toàn bộ các đoạn mã nguồn và nội dung do công cụ AI gợi ý đều được các thành viên trong nhóm trực tiếp kiểm chứng, chạy thử nghiệm thực tế và chịu trách nhiệm hoàn toàn về tính chính xác học thuật.
+\end{itemize}
+

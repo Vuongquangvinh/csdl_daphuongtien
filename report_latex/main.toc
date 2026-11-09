@@ -1,0 +1,22 @@
+\contentsline {section}{\numberline {1}ĐẶT VẤN ĐỀ}{3}{section.1}%
+\contentsline {section}{\numberline {2}PHƯƠNG PHÁP NGHIÊN CỨU}{4}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Ngữ liệu và Thiết kế Cơ sở dữ liệu Đa phương tiện}{4}{subsection.2.1}%
+\contentsline {subsubsection}{\numberline {2.1.1}Ngữ liệu thu âm và quy ước mã hóa VNI}{4}{subsubsection.2.1.1}%
+\contentsline {subsubsection}{\numberline {2.1.2}Thiết kế Cơ sở dữ liệu Đa phương tiện SQLite}{6}{subsubsection.2.1.2}%
+\contentsline {subsection}{\numberline {2.2}Quy trình Xử lý Tín hiệu Số và Ghép nối Âm thanh (DSP Pipeline)}{6}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}Trích xuất Đặc trưng Âm thanh Số (Acoustic Feature Extraction)}{8}{subsection.2.3}%
+\contentsline {subsection}{\numberline {2.4}Kiến trúc Phần mềm Hệ thống}{8}{subsection.2.4}%
+\contentsline {section}{\numberline {3}KẾT QUẢ VÀ THẢO LUẬN}{9}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Kết quả Cài đặt và Thực nghiệm Hệ thống}{9}{subsection.3.1}%
+\contentsline {subsubsection}{\numberline {3.1.1}Giao diện ứng dụng và kịch bản vận hành}{9}{subsubsection.3.1.1}%
+\contentsline {subsubsection}{\numberline {3.1.2}Đo đạc hiệu năng tính toán và thời gian đáp ứng}{10}{subsubsection.3.1.2}%
+\contentsline {subsection}{\numberline {3.2}Đánh giá Chất lượng Hệ thống theo 7 Tiêu chí Đề tài}{11}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Thảo luận và Phân tích Chuyên sâu}{12}{subsection.3.3}%
+\contentsline {subsubsection}{\numberline {3.3.1}Ưu điểm của hệ thống}{12}{subsubsection.3.3.1}%
+\contentsline {subsubsection}{\numberline {3.3.2}Hạn chế âm học và nguyên nhân}{13}{subsubsection.3.3.2}%
+\contentsline {section}{\numberline {4}KẾT LUẬN VÀ HƯỚNG PHÁT TRIỂN}{13}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Kết luận}{13}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Hướng phát triển tiếp theo}{13}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Phạm vi Sử dụng Trí tuệ Nhân tạo (AI Disclosure Statement)}{14}{subsection.4.3}%
+\contentsline {section}{TÀI LIỆU THAM KHẢO}{14}{subsection.4.3}%
+\contentsline {section}{PHỤ LỤC}{15}{subsection.4.3}%

@@ -1,0 +1,114 @@
+\documentclass[13pt,a4paper]{extarticle}
+
+% =========================================================================
+% CẤU HÌNH TRANG VÀ LỀ THEO ĐÚNG QUY ĐỊNH CỦA GIẢNG VIÊN:
+% Khổ giấy A4: Lề trên: 2.0 cm, Lề dưới: 2.0 cm, Lề trái: 3.0 cm, Lề phải: 2.0 cm
+% =========================================================================
+\usepackage[a4paper, top=2.0cm, bottom=2.0cm, left=3.0cm, right=2.0cm]{geometry}
+
+% Phông chữ Times New Roman và hỗ trợ tiếng Việt chuẩn Unicode
+\usepackage{fontspec}
+\setmainfont{Times New Roman}
+
+% Dãn dòng và dãn đoạn theo đúng quy định:
+% Dãn dòng: 1.3; Thụt đầu dòng: 1 tab = 1.27 cm; Dãn đoạn trước/sau: 6pt
+\usepackage{setspace}
+\setstretch{1.3}
+\setlength{\parindent}{1.27cm}
+\setlength{\parskip}{6pt}
+
+% Các gói toán học, đồ họa, bảng biểu và liên kết
+\usepackage{amsmath, amssymb, amsfonts}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{caption}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, calc, fit}
+\usepackage[colorlinks=true, linkcolor=blue!80!black, citecolor=blue!80!black, urlcolor=blue!80!black]{hyperref}
+
+% Đổi tên nhãn Bảng và Hình sang tiếng Việt chuẩn
+\renewcommand{\tablename}{Bảng}
+\renewcommand{\figurename}{Hình}
+
+% Cấu hình tiêu đề Bảng và Hình theo đúng quy định:
+% - Bảng: Tiêu đề đặt trên đầu bảng, in đậm, canh giữa
+% - Hình: Tiêu đề đặt dưới hình, in đậm, canh giữa
+\captionsetup[table]{
+    position=top,
+    justification=centering,
+    font={bf},
+    labelsep=period,
+    skip=6pt
+}
+\captionsetup[figure]{
+    position=bottom,
+    justification=centering,
+    font={bf},
+    labelsep=period,
+    skip=6pt
+}
+
+% Cấu hình định dạng đề mục (Heading) tối đa 3 cấp theo đúng quy định:
+% 1. TIÊU ĐỀ CẤP 1 (IN HOA ĐẬM, CỠ CHỮ 13)
+% 1.1. Tiêu đề cấp 2 (In đậm)
+% 1.1.1. Tiêu đề cấp 3 (In đậm hoặc nghiêng)
+\usepackage{titlesec}
+\titleformat{\section}
+  {\normalfont\fontsize{13}{16}\bfseries}{\thesection.}{0.5em}{\MakeUppercase}
+\titlespacing*{\section}{0pt}{6pt}{6pt}
+
+\titleformat{\subsection}
+  {\normalfont\fontsize{13}{16}\bfseries}{\thesubsection.}{0.5em}{}
+\titlespacing*{\subsection}{0pt}{6pt}{6pt}
+
+\titleformat{\subsubsection}
+  {\normalfont\fontsize{13}{16}\bfseries\itshape}{\thesubsubsection.}{0.5em}{}
+\titlespacing*{\subsubsection}{0pt}{6pt}{6pt}
+
+% =========================================================================
+% BẮT ĐẦU NỘI DUNG TÀI LIỆU
+% =========================================================================
+\begin{document}
+
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+% -------------------------------------------------------------------------
+% TIÊU ĐỀ BÁO CÁO VÀ THÔNG TIN TÁC GIẢ THEO ĐÚNG MẪU QUY ĐỊNH CỦA GIẢNG VIÊN
+% -------------------------------------------------------------------------
+\begin{center}
+    {\fontsize{13}{16}\selectfont \textbf{XÂY DỰNG HỆ THỐNG CHUYỂN VĂN BẢN TIẾNG VIỆT THÀNH GIỌNG NÓI MỨC TỪ BẰNG PHƯƠNG PHÁP TỔNG HỢP GHÉP NỐI}}\\[10pt]
+    {\fontsize{13}{16}\selectfont \textbf{Vương Quang Vinh* và Hồ Phúc Thịnh}}\\[6pt]
+\end{center}
+\begin{flushright}
+    {\fontsize{11}{14}\selectfont \textit{*Tác giả liên hệ (email: vqvinhhttt2211029@student.ctuet.edu.vn)}}
+\end{flushright}
+\vspace{6pt}
+
+% -------------------------------------------------------------------------
+% TÓM TẮT ĐỀ TÀI (ABSTRACT)
+% -------------------------------------------------------------------------
+\noindent\textbf{TÓM TẮT}\par
+Báo cáo trình bày nghiên cứu và xây dựng hệ thống tổng hợp giọng nói từ văn bản tiếng Việt ở mức từ (Word-level Text-to-Speech) theo phương pháp tổng hợp ghép nối (Concatenative Speech Synthesis) trên nền tảng Cơ sở dữ liệu đa phương tiện. Mục đích của đề tài là tạo ra giọng đọc nghe rõ từng từ, đúng thanh điệu từ kho ngữ liệu âm thanh được thu âm thực tế. Câu đầu vào được chuẩn hóa, phân tách thành các từ đơn và mã hóa theo quy ước bộ gõ VNI; mã hóa này đóng vai trò là khóa định danh tra cứu nhanh trong cơ sở dữ liệu quan hệ SQLite nhằm lấy tệp âm thanh WAV tương ứng. Các tệp âm thanh được xử lý bằng các kỹ thuật xử lý tín hiệu số (DSP) chuyên sâu bao gồm cắt tỉa khoảng lặng động (Silence Trimming), chuẩn hóa năng lượng RMS, chèn khoảng nghỉ tự nhiên 120 ms và làm mờ chéo tuyến tính (Linear Cross-fade 10 ms) nhằm triệt tiêu tiếng nổ tại ranh giới ghép nối. Hệ thống được xây dựng hoàn chỉnh dưới dạng ứng dụng Web với backend FastAPI và frontend ReactJS SPA, cung cấp đầy đủ các chức năng: phòng tổng hợp thời gian thực, quản lý tra cứu 7.188 từ vựng và trực quan hóa 5 nhóm đặc trưng âm học số (Waveform, RMS, ZCR, cao độ $F_0$ và 13 hệ số MFCC). Kết quả thực nghiệm cho thấy hệ thống hoạt động ổn định, giọng đọc rõ ràng, bảo toàn nguyên vẹn sáu thanh điệu tiếng Việt và tốc độ phản hồi siêu tốc với hệ số thời gian thực $\text{RTF} < 0{,}04$.
+
+\vspace{6pt}
+\noindent\textbf{Từ khóa}: \textit{Chuyển văn bản thành giọng nói (TTS), Tổng hợp ghép nối, Cơ sở dữ liệu đa phương tiện, Xử lý tín hiệu số, VNI Encoding, SQLite, FastAPI, ReactJS.}
+
+\vspace{12pt}
+
+% -------------------------------------------------------------------------
+% CÁC PHẦN CHÍNH CỦA BÁO CÁO (MODULAR INCLUSIONS)
+% -------------------------------------------------------------------------
+\input{sections/01_introduction.tex}
+\input{sections/02_methodology.tex}
+\input{sections/03_results_discussion.tex}
+\input{sections/04_conclusion.tex}
+\input{sections/05_references.tex}
+\input{sections/06_appendices.tex}
+
+\end{document}

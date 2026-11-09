@@ -1,0 +1,325 @@
+\section{PHƯƠNG PHÁP NGHIÊN CỨU}
+
+Hệ thống VietVoice TTS được thiết kế theo phương pháp tổng hợp ghép nối mức từ (Word-level Concatenative Synthesis), kết hợp mô hình cơ sở dữ liệu quan hệ đa phương tiện và các kỹ thuật xử lý tín hiệu số (DSP) nhằm bảo đảm chất lượng âm thanh phát ra tự nhiên, rõ ràng và phản hồi theo thời gian thực.
+
+\subsection{Ngữ liệu và Thiết kế Cơ sở dữ liệu Đa phương tiện}
+
+\subsubsection{Ngữ liệu thu âm và quy ước mã hóa VNI}
+Ngữ liệu của đề tài bao gồm 7.188 từ tiếng Việt được quản lý qua tệp \texttt{metadata\_encoded.csv}, cùng 5.429 tệp âm thanh đơn kênh (mono) ở định dạng WAV PCM 16-bit với tần số lấy mẫu chuẩn 22.050 Hz. Toàn bộ âm thanh được thu âm thực tế, giữ nguyên chất lượng âm học gốc của người đọc.
+
+Để hệ thống tra cứu độc lập với bảng mã Unicode và không bị lỗi đường dẫn tệp trên các hệ điều hành, nhóm nghiên cứu xây dựng quy ước mã hóa hai chiều dựa trên bộ gõ VNI. Dấu thanh được chuyển thành chữ số từ 0 đến 5 đặt ở cuối mã từ (Bảng 1), còn các nguyên âm có dấu nón, dấu móc hoặc phụ âm gạch ngang được chuyển đổi thành ký tự ASCII đại diện (Bảng 2).
+
+\begin{table}[H]
+\centering
+\caption{Quy ước mã hóa thanh điệu tiếng Việt}
+\label{tab:tone_encoding}
+\vspace{2pt}
+\begin{tabular}{cclc}
+\toprule
+\textbf{Ký tự số} & \textbf{Tên thanh điệu} & \textbf{Ví dụ từ vựng} & \textbf{Mã hóa VNI} \\
+\midrule
+0 & Ngang (Không dấu) & ba, bay, anh & \texttt{ba0}, \texttt{bay0}, \texttt{anh0} \\
+1 & Sắc & cá, bán, ánh & \texttt{ca1}, \texttt{ban1}, \texttt{anh1} \\
+2 & Huyền & bà, bè, người & \texttt{ba2}, \texttt{be2}, \texttt{nguoi2} \\
+3 & Hỏi & cảng, bả, hiểu & \texttt{cang3}, \texttt{ba3}, \texttt{hieu3} \\
+4 & Ngã & bãi, vỗ, nghĩ & \texttt{bai4}, \texttt{vo+4}, \texttt{nghi4} \\
+5 & Nặng & bạn, mẹ, thật & \texttt{ban5}, \texttt{me5}, \texttt{that5} \\
+\bottomrule
+\end{tabular}
+\par\vspace{4pt}
+\begin{minipage}{0.88\textwidth}
+\fontsize{12}{14}\selectfont \textbf{Ghi chú}: Số đại diện thanh điệu luôn nằm ở cuối chuỗi mã để hệ thống dễ dàng bóc tách và đối sánh.\par
+\textbf{Nguồn}: Đề xuất của nhóm nghiên cứu theo chuẩn VNI.
+\end{minipage}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Quy ước mã hóa ký tự cấu trúc tiếng Việt}
+\label{tab:char_encoding}
+\vspace{2pt}
+\begin{tabular}{lccccccc}
+\toprule
+\textbf{Ký tự gốc} & â & ă & ô & ơ & ê & ư & đ \\
+\midrule
+\textbf{Mã hóa VNI} & \texttt{a+} & \texttt{aa} & \texttt{o+} & \texttt{oo} & \texttt{e+} & \texttt{uu} & \texttt{d-} \\
+\bottomrule
+\end{tabular}
+\par\vspace{4pt}
+\begin{minipage}{0.88\textwidth}
+\fontsize{12}{14}\selectfont \textbf{Ghi chú}: Các ký tự đặc biệt được ánh xạ sang tổ hợp ASCII nhằm tương thích tối đa với hệ thống tệp và CSDL.\par
+\textbf{Nguồn}: Đề xuất của nhóm nghiên cứu.
+\end{minipage}
+\end{table}
+
+Quy trình bóc tách và chuyển đổi từ vựng tiếng Việt sang mã định danh VNI được mô hình hóa trực quan qua lưu đồ trong Hình 1.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    startstop/.style={rectangle, rounded corners=6pt, text width=5.0cm, minimum height=0.8cm, text centered, draw=blue!70!black, fill=blue!10, font=\small\bfseries},
+    process/.style={rectangle, rounded corners=3pt, text width=6.6cm, minimum height=0.8cm, text centered, draw=black!70, fill=gray!10, font=\small},
+    branch/.style={rectangle, rounded corners=3pt, text width=3.4cm, minimum height=1.1cm, text centered, align=center, draw=teal!70!black, fill=teal!10, font=\small},
+    arrow/.style={thick, -{Stealth[length=2.5mm]}, draw=black!75}
+]
+\node (in) [startstop] {Từ tiếng Việt (chuẩn NFC)};
+\node (nfd) [process, below=0.8cm of in] {Phân rã chuỗi NFD (Tách dấu phụ)};
+\node (split) [process, below=0.8cm of nfd] {Duyệt từng ký tự \& Phân loại};
+
+% 3 nhánh rẽ ngang nhau, phân bố đối xứng rõ ràng
+\node (struct) [branch, below=1.2cm of split] {\textbf{Ký tự cấu trúc}\\(â$\to$\texttt{a+}, ă$\to$\texttt{aa}, đ$\to$\texttt{d-})};
+\node (base) [branch, left=0.8cm of struct] {\textbf{Ký tự cơ sở}\\(a, b, c,...)};
+\node (tone) [branch, right=0.8cm of struct] {\textbf{Dấu thanh}\\(sắc$\to$1, huyền$\to$2,...)};
+
+\node (merge) [process, below=1.2cm of struct, text width=8.2cm] {Ghép chuỗi: [Ký tự cấu trúc] + [Mã thanh điệu]};
+\node (out) [startstop, below=0.8cm of merge, fill=teal!15, draw=teal!70!black, text width=6.8cm] {Mã VNI đại diện (ví dụ: \texttt{ca1}, \texttt{ban5})};
+
+\draw [arrow] (in) -- (nfd);
+\draw [arrow] (nfd) -- (split);
+\draw [arrow] (split) -| (base.north);
+\draw [arrow] (split) -- (struct.north);
+\draw [arrow] (split) -| (tone.north);
+\draw [arrow] (base.south) |- (merge);
+\draw [arrow] (struct.south) -- (merge);
+\draw [arrow] (tone.south) |- (merge);
+\draw [arrow] (merge) -- (out);
+\end{tikzpicture}
+\caption{Lưu đồ thuật toán mã hóa từ tiếng Việt sang mã VNI}
+\label{fig:vni_flowchart}
+\par\vspace{4pt}
+\begin{minipage}{0.88\textwidth}
+\centering\fontsize{12}{14}\selectfont \textbf{Nguồn}: Mô hình hóa giải thuật từ hàm \texttt{encode\_word()} trong backend.
+\end{minipage}
+\end{figure}
+
+\subsubsection{Thiết kế Cơ sở dữ liệu Đa phương tiện SQLite}
+Kho ngữ liệu và các đặc trưng số được lưu trữ trong hệ quản trị cơ sở dữ liệu SQLite 3 với cấu trúc 4 bảng quan hệ chuẩn hóa (Bảng 3).
+
+\begin{table}[H]
+\centering
+\caption{Cấu trúc các bảng trong cơ sở dữ liệu đa phương tiện VietVoice}
+\label{tab:db_schema}
+\vspace{2pt}
+\begin{tabularx}{\textwidth}{p{3.0cm}p{3.8cm}X}
+\toprule
+\textbf{Tên bảng} & \textbf{Khóa chính / ngoại} & \textbf{Ý nghĩa và chức năng} \\
+\midrule
+\texttt{speakers} & \texttt{speaker\_id} (PK) & Quản lý danh mục người đọc, tên và mô tả giọng thu. \\
+\addlinespace
+\texttt{words} & \texttt{word\_id} (PK) & Danh mục từ vựng, từ gốc có dấu, mã \texttt{encoded\_word} và tên tệp mã hóa \texttt{encoded\_filename}. \\
+\addlinespace
+\texttt{audio\_records} & \texttt{audio\_id} (PK)\newline \texttt{word\_id} (FK)\newline \texttt{speaker\_id} (FK) & Lưu trữ đường dẫn tệp âm thanh WAV, kênh, tần số lấy mẫu (22.050 Hz), số khung, thời lượng và kích thước tệp. \\
+\addlinespace
+\texttt{audio\_features} & \texttt{feature\_id} (PK)\newline \texttt{audio\_id} (FK, UNIQUE) & Lưu trữ các đặc trưng số đã trích xuất: năng lượng RMS, biên độ đỉnh, ZCR, cao độ $F_0$, tỷ lệ hữu thanh, chuỗi JSON của 13 hệ số MFCC và dạng sóng rút gọn. \\
+\bottomrule
+\end{tabularx}
+\par\vspace{4pt}
+\begin{minipage}{\textwidth}
+\fontsize{12}{14}\selectfont \textbf{Ghi chú}: Ràng buộc khóa ngoại \texttt{ON DELETE CASCADE} bảo đảm tính toàn vẹn giữa dữ liệu âm thanh và các vector đặc trưng.\par
+\textbf{Nguồn}: Thiết kế hệ thống VietVoice TTS.
+\end{minipage}
+\end{table}
+
+Hệ thống thiết lập các chỉ mục B-Tree trên trường \texttt{word} (bảng \texttt{words}) cùng các trường \texttt{word\_id} và \texttt{speaker\_id} (bảng \texttt{audio\_records}), giúp câu truy vấn ghép nối theo lô (\textit{batch query}) đạt tốc độ xấp xỉ $O(1)$, bảo đảm thời gian phản hồi dưới 100 ms ngay cả khi tổng hợp câu dài.
+
+\subsection{Quy trình Xử lý Tín hiệu Số và Ghép nối Âm thanh (DSP Pipeline)}
+
+Toàn bộ quy trình chuyển đổi từ một câu văn bản tiếng Việt sang dòng âm thanh WAV hoàn chỉnh được mô hình hóa chi tiết tại sơ đồ khối Hình 2.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    startstop/.style={rectangle, rounded corners=6pt, text width=6.8cm, minimum height=0.8cm, text centered, draw=blue!70!black, fill=blue!10, font=\small\bfseries},
+    process/.style={rectangle, rounded corners=3pt, text width=8.5cm, minimum height=0.8cm, text centered, draw=black!70, fill=gray!10, font=\small},
+    decision/.style={diamond, text width=3.2cm, minimum height=1.1cm, text centered, align=center, draw=orange!80!black, fill=orange!15, font=\small},
+    warn/.style={rectangle, rounded corners=3pt, text width=3.2cm, minimum height=0.8cm, text centered, align=center, draw=red!70!black, fill=red!10, font=\small},
+    arrow/.style={thick, -{Stealth[length=2.5mm]}, draw=black!75}
+]
+\node (start) [startstop] {1. Câu văn bản tiếng Việt đầu vào};
+\node (p1) [process, below=0.7cm of start] {2. Chuẩn hóa Unicode NFC \& Phân tách token từ vựng};
+\node (p2) [process, below=0.7cm of p1] {3. Mã hóa VNI \& Truy vấn CSDL SQLite theo lô};
+\node (dec) [decision, below=0.9cm of p2] {Đủ tệp âm\\thanh WAV?};
+\node (warn) [warn, right=1.6cm of dec] {Cảnh báo từ thiếu\\(\textit{missing words})};
+\node (p3) [process, below=0.9cm of dec] {4. Tiền xử lý DSP: Cắt khoảng lặng \& Chuẩn hóa RMS (9000)};
+\node (p4) [process, below=0.7cm of p3] {5. Ghép nối: Chèn Pause 120 ms \& Cross-fade 10 ms};
+\node (stop) [startstop, below=0.7cm of p4, fill=teal!15, draw=teal!70!black] {Xuất tệp WAV PCM 16-bit \& Dữ liệu Timeline};
+
+\draw [arrow] (start) -- (p1);
+\draw [arrow] (p1) -- (p2);
+\draw [arrow] (p2) -- (dec);
+\draw [arrow] (dec) -- node[above, font=\footnotesize\bfseries, text=red!80!black] {Không} (warn);
+\draw [arrow] (dec) -- node[right, font=\footnotesize\bfseries, text=teal!80!black] {Có} (p3);
+\draw [arrow] (p3) -- (p4);
+\draw [arrow] (p4) -- (stop);
+\end{tikzpicture}
+\caption{Sơ đồ quy trình tổng hợp tiếng nói tuần tự và xử lý tín hiệu số}
+\label{fig:tts_pipeline_diagram}
+\par\vspace{4pt}
+\begin{minipage}{0.88\textwidth}
+\centering\fontsize{12}{14}\selectfont \textbf{Nguồn}: Mô hình hóa quy trình tổng hợp 5 bước của hệ thống VietVoice TTS.
+\end{minipage}
+\end{figure}
+
+Trong quy trình trên, hai kỹ thuật xử lý tín hiệu số (DSP) giữ vai trò quyết định đến chất lượng âm thanh:
+\begin{enumerate}
+    \item \textbf{Cắt tỉa khoảng lặng (Silence Trimming) và Chuẩn hóa năng lượng RMS}: Tự động dò tìm các mẫu âm thanh có biên độ vượt ngưỡng nền 500 (trên thang PCM 16-bit) để cắt bỏ khoảng lặng thừa trước và sau phát âm; đồng thời điều chỉnh năng lượng hiệu dụng về mức chuẩn 9.000 kết hợp bộ giới hạn đỉnh (Peak Limiter tối đa 30.000) nhằm cân bằng độ to và tránh méo tiếng.
+    \item \textbf{Chèn khoảng nghỉ (Pause Modeling) và Làm mượt biên giới từ (Linear Cross-fade)}: Chèn quãng nghỉ 120 ms giữa hai từ liên tiếp mô phỏng nhịp điệu nói tự nhiên. Tại điểm nối giữa hai mẩu âm thanh, hệ thống áp dụng kỹ thuật làm mờ chéo trong khoảng 10 ms (Hình 3): biên độ đoạn trước giảm dần (Fade-out) đồng thời biên độ đoạn sau tăng dần (Fade-in). Nhờ đó, tín hiệu số chuyển tiếp êm ái, xóa bỏ hoàn toàn tiếng nổ lách tách (click/pop) do gián đoạn pha gây ra.
+\end{enumerate}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[x=1cm, y=1cm, every node/.style={font=\small}]
+
+% ============================================================
+% Layout hoàn toàn nằm ngang (horizontal), hai khối song song
+% Từ thứ nhất: [0,5.5]  |  Overlap: [5.5,7.5]  |  Từ thứ hai: [5.5,13]
+% Tất cả trung tâm cùng mức y=0, cao 1.4cm (y=-0.7 .. +0.7)
+% ============================================================
+
+% === Từ thứ nhất (trái, màu xanh dương) ===
+\draw[thick, fill=blue!10, draw=blue!70!black, rounded corners=3pt]
+    (0.0, -0.7) rectangle (7.5, 0.7);
+\node[align=center] at (3.0, 0.0)
+    {\textbf{Đoạn âm thanh}\\[2pt]\textbf{Từ thứ nhất} ($x_1$)};
+
+% === Từ thứ hai (phải, màu xanh lá) ===
+\draw[thick, fill=teal!10, draw=teal!70!black, rounded corners=3pt]
+    (5.5, -0.7) rectangle (13.0, 0.7);
+\node[align=center] at (10.0, 0.0)
+    {\textbf{Đoạn âm thanh}\\[2pt]\textbf{Từ thứ hai} ($x_2$)};
+
+% === Vùng chồng lặp Cross-fade [5.5, 7.5] ===
+\fill[orange!18] (5.5, -1.1) rectangle (7.5, 1.4);
+\draw[dashed, very thick, draw=orange!80!black] (5.5, -1.1) rectangle (7.5, 1.4);
+\node[above=3pt, text=orange!90!black, font=\small\bfseries, align=center]
+    at (6.5, 1.4) {Vùng Cross-fade\\(10 ms)};
+
+% === Mũi tên Fade-out (chéo từ trên trái → xuống phải) ===
+\draw[very thick, -{Stealth[length=3mm]}, red!80!black]
+    (5.5, 0.55) -- (7.5, -0.3);
+% Nhãn Fade-out đặt bên ngoài vùng overlap (bên trái, trên)
+\node[left=3pt, font=\footnotesize\bfseries, text=red!80!black, align=right]
+    at (5.5, 0.9) {Fade-out\\($1 - \alpha$)};
+
+% === Mũi tên Fade-in (chéo từ dưới trái → lên phải) ===
+\draw[very thick, -{Stealth[length=3mm]}, teal!70!black]
+    (5.5, -0.55) -- (7.5, 0.3);
+% Nhãn Fade-in đặt bên ngoài vùng overlap (bên trái, dưới)
+\node[left=3pt, font=\footnotesize\bfseries, text=teal!70!black, align=right]
+    at (5.5, -0.9) {Fade-in\\($\alpha$)};
+
+% === Mũi tên xuống ===
+\draw[very thick, -{Stealth[length=3.5mm]}, black!80]
+    (6.5, -1.4) -- (6.5, -2.3);
+\node[right=6pt, font=\small] at (6.5, -1.85)
+    {$y[n] = (1-\alpha)\,x_1[n] + \alpha\,x_2[n]$};
+
+% === Khung kết quả ===
+\draw[thick, fill=teal!15, draw=teal!70!black, rounded corners=3pt]
+    (0.5, -3.4) rectangle (12.5, -2.5);
+\node[align=center, font=\small] at (6.5, -2.95)
+    {\textbf{Tín hiệu âm thanh tổng hợp liền mạch}
+     \enspace (Triệt tiêu tiếng nổ lách tách — click/pop)};
+
+\end{tikzpicture}
+\caption{Sơ đồ nguyên lý làm mượt biên giới từ bằng kỹ thuật Linear Cross-fade}
+\label{fig:crossfade_diagram}
+\par\vspace{4pt}
+\begin{minipage}{0.92\textwidth}
+\centering\fontsize{12}{14}\selectfont
+\textbf{Nguồn}: Mô phỏng kỹ thuật làm mờ chéo từ hàm \texttt{concatenate()} trong backend (dòng 252--262).
+\end{minipage}
+\end{figure}
+
+\subsection{Trích xuất Đặc trưng Âm thanh Số (Acoustic Feature Extraction)}
+
+Bên cạnh chức năng tổng hợp, hệ thống xây dựng mô-đun phân tích đặc trưng âm học số \texttt{extract\_features.py} để phục vụ nghiên cứu và trực quan hóa trong môn học CSDL Đa phương tiện. Tín hiệu âm thanh được phân khung ngắn hạn (độ dài khung 1.024 mẫu, bước nhảy 256 mẫu, nhân cửa sổ Hanning) để trích xuất 5 nhóm thuộc tính cốt lõi theo lưu đồ Hình 4:
+\begin{itemize}
+    \item \textbf{Năng lượng hiệu dụng (RMS Energy) và Biên độ đỉnh (Peak Amplitude)}: Phản ánh độ to cảm nhận và mức cường độ tín hiệu lớn nhất của từ vựng.
+    \item \textbf{Tần suất cắt qua điểm không (Zero-Crossing Rate - ZCR)}: Đếm số lần tín hiệu đổi dấu qua mức 0, là chỉ số kinh điển giúp phân biệt âm hữu thanh (ZCR thấp) và âm vô thanh (ZCR cao).
+    \item \textbf{Cao độ cơ bản $F_0$ (Pitch)}: Ước lượng tần số rung động của dây thanh âm bằng thuật toán tự tương quan (\textit{Autocorrelation}) trên miền thời gian trong dải tần sinh học 50--500 Hz, đồng thời tính tỷ lệ khung hữu thanh (\textit{voiced fraction}).
+    \item \textbf{13 Hệ số MFCC (Mel-Frequency Cepstral Coefficients)}: Trích xuất qua biến đổi phổ FFT, ngân hàng 26 bộ lọc tam giác Mel và biến đổi cosin rời rạc (DCT-II). 13 hệ số MFCC đại diện cho đường bao phổ và đặc trưng âm sắc vòm họng của người nói.
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    startstop/.style={rectangle, rounded corners=6pt, text width=6.5cm, minimum height=0.8cm, text centered, draw=blue!70!black, fill=blue!10, font=\small\bfseries},
+    process/.style={rectangle, rounded corners=3pt, text width=8.5cm, minimum height=0.8cm, text centered, draw=black!70, fill=gray!10, font=\small},
+    feat/.style={rectangle, rounded corners=4pt, text width=3.3cm, minimum height=1.2cm, text centered, align=center, draw=purple!70!black, fill=purple!8, font=\small},
+    arrow/.style={thick, -{Stealth[length=2.5mm]}, draw=black!75}
+]
+\node (in) [startstop] {Tệp âm thanh WAV PCM 16-bit (22.050 Hz)};
+\node (prep) [process, below=0.7cm of in] {Phân khung ($N=1024, H=256$) \& Áp dụng cửa sổ Hanning};
+
+% 4 khối đặc trưng phân bố ngang cân đối, không va chạm
+\coordinate (center_level) at ([yshift=-1.2cm]prep.south);
+\node (f2) [feat] at ([xshift=-1.9cm]center_level) {\textbf{Tần suất ZCR}\\(Âm hữu/vô thanh)};
+\node (f1) [feat] at ([xshift=-5.6cm]center_level) {\textbf{Năng lượng RMS}\\\& Biên độ đỉnh Peak};
+\node (f3) [feat] at ([xshift=1.9cm]center_level) {\textbf{Cao độ $F_0$}\\(Tự tương quan 50--500 Hz)};
+\node (f4) [feat] at ([xshift=5.6cm]center_level) {\textbf{13 Hệ số MFCC}\\(Mel-filterbank + DCT)};
+
+\node (save) [startstop, below=1.3cm of center_level, fill=teal!15, draw=teal!70!black, text width=12.5cm] {Đóng gói vector JSON \& Lưu trữ vào bảng \texttt{audio\_features} trong SQLite};
+
+% Đường phân nhánh từ prep xuống 4 khối
+\draw [arrow] (in) -- (prep);
+\draw [thick, draw=black!75] (prep.south) -- ++(0,-0.4) coordinate (bus_top);
+\draw [thick, draw=black!75] ([xshift=-5.6cm]bus_top) -- ([xshift=5.6cm]bus_top);
+\draw [arrow] ([xshift=-5.6cm]bus_top) -- (f1.north);
+\draw [arrow] ([xshift=-1.9cm]bus_top) -- (f2.north);
+\draw [arrow] ([xshift=1.9cm]bus_top) -- (f3.north);
+\draw [arrow] ([xshift=5.6cm]bus_top) -- (f4.north);
+
+% Đường tập hợp từ 4 khối xuống bảng lưu trữ
+\draw [thick, draw=black!75] (f1.south) -- ++(0,-0.4) coordinate (b1);
+\draw [thick, draw=black!75] (f2.south) -- ++(0,-0.4) coordinate (b2);
+\draw [thick, draw=black!75] (f3.south) -- ++(0,-0.4) coordinate (b3);
+\draw [thick, draw=black!75] (f4.south) -- ++(0,-0.4) coordinate (b4);
+\draw [thick, draw=black!75] (b1) -- (b4);
+\draw [arrow] ($(b2)!0.5!(b3)$) -- ($(save.north)$);
+\end{tikzpicture}
+\caption{Sơ đồ luồng trích xuất 5 nhóm đặc trưng âm học số}
+\label{fig:dsp_flowchart}
+\par\vspace{4pt}
+\begin{minipage}{0.88\textwidth}
+\centering\fontsize{12}{14}\selectfont \textbf{Nguồn}: Mô hình hóa quy trình trích xuất từ \texttt{database/extract\_features.py}.
+\end{minipage}
+\end{figure}
+
+\subsection{Kiến trúc Phần mềm Hệ thống}
+
+Hệ thống được phát triển theo kiến trúc phân tầng hướng dịch vụ:
+\begin{itemize}
+    \item \textbf{Backend (FastAPI)}: Chạy trên nền Python tại cổng 8000, cung cấp bộ 6 RESTful API phục vụ toàn diện cho giao diện người dùng (Bảng 4).
+    \item \textbf{CSDL (SQLite)}: Tệp \texttt{database/vietvoice.db} quản lý đồng bộ dữ liệu văn bản, tệp âm thanh và vector đặc trưng.
+    \item \textbf{Frontend (React SPA)}: Ứng dụng web xây dựng bằng React 18, Vite và Tailwind CSS, tích hợp Canvas và Chart.js với 4 tab làm việc: \textit{TTS Studio} (phòng tổng hợp âm thanh), \textit{Khám Phá CSDL} (tra cứu từ và âm thanh), \textit{Trực Quan Đặc Trưng} (xem waveform, F0 và MFCC) và \textit{Sơ Đồ Khối \& Báo Cáo} (kiến trúc và 7 tiêu chí đề tài).
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\caption{Danh mục các điểm truy cập (API Endpoints) của hệ thống VietVoice TTS}
+\label{tab:api_endpoints}
+\vspace{2pt}
+\begin{tabularx}{\textwidth}{p{1.6cm}p{4.6cm}p{2.7cm}X}
+\toprule
+\textbf{Phương thức} & \textbf{Đường dẫn API} & \textbf{Tham số chính} & \textbf{Chức năng và phản hồi} \\
+\midrule
+\texttt{GET} & \texttt{/api/stats} & Không & Trả về thống kê tổng số từ, số từ có audio và số bản ghi đặc trưng. \\
+\addlinespace
+\texttt{GET} & \texttt{/api/samples} & Không & Cung cấp các câu mẫu thử nghiệm đại diện cho hệ thống. \\
+\addlinespace
+\texttt{POST} & \texttt{/api/tts/check} & Chuỗi \texttt{text} & Phân tích câu, tách từ và kiểm tra tính sẵn sàng của âm thanh từng từ theo thời gian thực. \\
+\addlinespace
+\texttt{POST} & \texttt{/api/tts/synthesize} & \texttt{text}, \texttt{word\_pause\_ms}, \texttt{crossfade\_ms},... & Thực hiện toàn bộ quy trình ghép nối DSP, trả về Data URI của tệp WAV và siêu dữ liệu Timeline. \\
+\addlinespace
+\texttt{GET} & \texttt{/api/words} & \texttt{q}, \texttt{filter\_status}, \texttt{page}, \texttt{limit} & Tìm kiếm, lọc và phân trang danh mục từ trong CSDL SQLite. \\
+\addlinespace
+\texttt{GET} & \texttt{/api/features/\{word\_id\}} & Mã \texttt{word\_id} & Truy vấn chi tiết waveform, đường cong $F_0$, 13 hệ số MFCC và cảnh báo âm học. \\
+\bottomrule
+\end{tabularx}
+\par\vspace{4pt}
+\begin{minipage}{\textwidth}
+\fontsize{12}{14}\selectfont \textbf{Ghi chú}: Toàn bộ các API đều hỗ trợ chuẩn dữ liệu JSON và cơ chế CORS đa nguồn.\par
+\textbf{Nguồn}: Tổng hợp từ mã nguồn \texttt{backend/main.py}.
+\end{minipage}
+\end{table}
