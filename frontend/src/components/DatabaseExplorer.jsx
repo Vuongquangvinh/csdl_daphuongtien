@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { Search, Play, LineChart } from 'lucide-react'
+import { Search, Play } from 'lucide-react'
 
-export default function DatabaseExplorer({ onInspectFeature, onPlayAudio }) {
+export default function DatabaseExplorer({ onPlayAudio }) {
   const [query, setQuery] = useState('')
   const [filterStatus, setFilterStatus] = useState('audio')
   const [page, setPage] = useState(1)
@@ -35,7 +35,7 @@ export default function DatabaseExplorer({ onInspectFeature, onPlayAudio }) {
         <div>
           <h2 className="text-xl font-bold text-slate-900">Quản Lý & Tra Cứu Dữ Liệu Đa Phương Tiện</h2>
           <p className="text-xs text-slate-500 mt-1">
-            Khám phá danh sách từ vựng, bản ghi âm thanh và các đặc trưng số trong CSDL SQLite.
+            Khám phá danh sách từ vựng, bản ghi âm thanh và các thông số âm thanh trong CSDL SQLite.
           </p>
         </div>
 
@@ -122,13 +122,6 @@ export default function DatabaseExplorer({ onInspectFeature, onPlayAudio }) {
                         >
                           <Play className="w-3 h-3 fill-current" />
                           <span>Nghe</span>
-                        </button>
-                        <button
-                          onClick={() => onInspectFeature(row.word_id)}
-                          className="px-2.5 py-1 text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition inline-flex items-center space-x-1"
-                        >
-                          <LineChart className="w-3 h-3" />
-                          <span>Đặc trưng</span>
                         </button>
                       </>
                     ) : (

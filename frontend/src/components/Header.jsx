@@ -1,5 +1,5 @@
 import React from 'react'
-import { AudioWaveform, Mic, Speech, Database, BarChart3 } from 'lucide-react'
+import { AudioWaveform, Mic, Speech, Database } from 'lucide-react'
 
 export default function Header({ stats, activeTab, setActiveTab }) {
   return (
@@ -58,18 +58,6 @@ export default function Header({ stats, activeTab, setActiveTab }) {
             >
               <Database className="w-4 h-4" />
               <span>Khám Phá CSDL Đa Phương Tiện</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('features')}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium border transition ${
-                activeTab === 'features'
-                  ? 'border-[#005baa] text-[#005baa] bg-[#e6f2fb]'
-                  : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-              }`}
-            >
-              <BarChart3 className="w-4 h-4" />
-              <span>Trực Quan Đặc Trưng Âm Thanh</span>
             </button>
 
           </nav>

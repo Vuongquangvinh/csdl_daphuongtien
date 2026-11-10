@@ -2,16 +2,13 @@ import React, { useEffect, useState } from 'react'
 import Header from './components/Header.jsx'
 import TTSStudio from './components/TTSStudio.jsx'
 import DatabaseExplorer from './components/DatabaseExplorer.jsx'
-import FeatureVisualizer from './components/FeatureVisualizer.jsx'
 
 export default function AppShell() {
   const [activeTab, setActiveTab] = useState('tts')
   const [stats, setStats] = useState({
     total_words: 0,
     words_with_audio: 0,
-    features_count: 0,
   })
-  const [selectedWordId, setSelectedWordId] = useState(null)
 
   useEffect(() => {
     fetch('/api/stats')
@@ -19,11 +16,6 @@ export default function AppShell() {
       .then((statsData) => setStats(statsData))
       .catch((error) => console.error('Failed to load application data', error))
   }, [])
-
-  const inspectFeature = (wordId) => {
-    setSelectedWordId(wordId)
-    setActiveTab('features')
-  }
 
   const playAudio = async (_wordId, word) => {
     try {
@@ -50,14 +42,7 @@ export default function AppShell() {
         {activeTab === 'tts' && <TTSStudio />}
         {activeTab === 'db' && (
           <DatabaseExplorer
-            onInspectFeature={inspectFeature}
             onPlayAudio={playAudio}
-          />
-        )}
-        {activeTab === 'features' && (
-          <FeatureVisualizer
-            selectedWordId={selectedWordId}
-            setSelectedWordId={setSelectedWordId}
           />
         )}
       </main>

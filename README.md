@@ -213,11 +213,11 @@ python .\database\extract_features.py
 
 Script đọc các file WAV và lưu vào bảng `audio_features`:
 
-- RMS energy và peak amplitude.
-- Zero-crossing rate.
-- F0 trung bình và tỷ lệ frame hữu thanh.
-- 13 hệ số MFCC trung bình và độ lệch chuẩn.
-- Waveform và đường cong F0 được lấy mẫu rút gọn để lưu JSON.
+- RMS energy.
+- F0 trung bình theo đơn vị Hz.
+
+Thông tin thời lượng và sample rate được đọc trực tiếp từ file WAV và lưu trong
+bảng `audio_records`.
 
 Có thể kiểm tra nhanh số lượng:
 
@@ -231,14 +231,13 @@ with sqlite3.connect("database/vietvoice.db") as db:
 
 ## 9. Giao diện các chức năng
 
-Frontend hiện có bốn tab:
+Frontend hiện có hai tab:
 
 - **Phòng Tổng Hợp (TTS Studio):** nhập văn bản, kiểm tra từ và tổng hợp WAV.
-- **Khám Phá CSDL:** tìm kiếm từ, xem trạng thái audio và mở đặc trưng.
-- **Trực Quan Đặc Trưng:** xem waveform, F0 và MFCC của một `word_id`.
-- **Sơ Đồ Khối & Báo Cáo:** xem pipeline và mô tả kỹ thuật của đề tài.
+- **Khám Phá CSDL:** tìm kiếm từ, xem trạng thái audio và các thông số cần thiết
+  gồm thời lượng, sample rate, năng lượng RMS và cao độ F0 (Hz).
 
-Từ tab Khám Phá CSDL, nút **Đặc trưng** chuyển sang tab trực quan tương ứng.
+Giao diện không còn trang biểu đồ trực quan waveform, phổ/MFCC hoặc đường cong F0.
 Nút **Nghe** tổng hợp và phát audio của từ qua API backend.
 
 ### Chuẩn hóa đầu vào

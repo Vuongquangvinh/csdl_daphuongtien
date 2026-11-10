@@ -35,15 +35,7 @@ CREATE TABLE IF NOT EXISTS audio_features (
     feature_id INTEGER PRIMARY KEY AUTOINCREMENT,
     audio_id INTEGER NOT NULL UNIQUE,
     rms_energy REAL,
-    peak_amplitude REAL,
-    zcr_mean REAL,
     f0_mean_hz REAL,
-    f0_voiced_fraction REAL,
-    mfcc_mean_json TEXT,
-    mfcc_std_json TEXT,
-    waveform_json TEXT,
-    f0_curve_json TEXT,
-    quality_warnings TEXT,
     extracted_at TEXT,
     FOREIGN KEY (audio_id) REFERENCES audio_records(audio_id) ON DELETE CASCADE
 );

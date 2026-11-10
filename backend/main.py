@@ -457,13 +457,5 @@ def features(word_id: str) -> dict[str, Any]:
         "duration": row["duration"],
         "sample_rate": row["sample_rate"],
         "rms_energy": row["rms_energy"],
-        "peak_amplitude": row["peak_amplitude"],
-        "zcr_mean": row["zcr_mean"],
         "f0_mean_hz": row["f0_mean_hz"],
-        "f0_voiced_fraction": row["f0_voiced_fraction"] or 0,
-        "mfcc_mean": json.loads(row["mfcc_mean_json"] or "[]"),
-        "mfcc_std": json.loads(row["mfcc_std_json"] or "[]"),
-        "waveform": json.loads(row["waveform_json"] or "[]"),
-        "f0_curve": json.loads(row["f0_curve_json"] or "[]"),
-        "quality_warnings": row["quality_warnings"],
     }
