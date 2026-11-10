@@ -45,7 +45,7 @@ export default function Header({ stats, activeTab, setActiveTab }) {
               }`}
             >
               <Speech className="w-4 h-4" />
-              <span>Phòng Tổng Hợp (TTS Studio)</span>
+              <span>Text to Speech</span>
             </button>
 
             <button
@@ -57,7 +57,7 @@ export default function Header({ stats, activeTab, setActiveTab }) {
               }`}
             >
               <Database className="w-4 h-4" />
-              <span>Khám Phá CSDL Đa Phương Tiện</span>
+              <span>Quản Lý Dữ Liệu</span>
             </button>
 
           </nav>

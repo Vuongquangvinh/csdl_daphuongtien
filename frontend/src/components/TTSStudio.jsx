@@ -142,7 +142,7 @@ export default function TTSStudio() {
                 if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') handleSynthesize()
               }}
               className="w-full text-lg p-3 rounded border border-slate-300 focus:ring-2 focus:ring-[#005baa] focus:border-[#005baa] outline-none transition resize-none placeholder-slate-400"
-              placeholder="Nhập từ hoặc câu (Ví dụ: ba bán bánh, anh đi đâu đấy...)"
+              placeholder="Nhập từ hoặc câu"
             />
 
             {/* Real-time Token Badges */}
@@ -254,7 +254,7 @@ export default function TTSStudio() {
               {/* Word Timeline */}
               <div>
                 <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
-                  Dòng thời gian phát âm từng từ (Bấm vào từ để tua nhanh):
+                  Dòng thời gian phát âm từng từ:
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {result.meta.timeline.map((w, idx) => (
@@ -319,7 +319,7 @@ export default function TTSStudio() {
               />
               <div className="relative h-4 mt-0.5 text-[10px] text-slate-400">
                 <span className="absolute left-0">0 ms</span>
-                <span className="absolute left-[30%] -translate-x-1/2">120 ms (Chuẩn)</span>
+                <span className="absolute left-[30%] -translate-x-1/2">120 ms</span>
                 <span className="absolute right-0">400 ms</span>
               </div>
             </div>
@@ -366,7 +366,7 @@ export default function TTSStudio() {
                 />
                 <div>
                   <span className="text-xs font-semibold text-slate-700">Làm mượt điểm tiếp giáp (Crossfade 10ms)</span>
-                  <p className="text-[11px] text-slate-500">Khử tiếng nổ click/pop tại biên.</p>
+                  <p className="text-[11px] text-slate-500">Làm mượt điểm tiếp giáp các audio.</p>
                 </div>
               </label>
             </div>

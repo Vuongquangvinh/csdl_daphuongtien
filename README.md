@@ -233,7 +233,7 @@ with sqlite3.connect("database/vietvoice.db") as db:
 
 Frontend hiện có hai tab:
 
-- **Phòng Tổng Hợp (TTS Studio):** nhập văn bản, kiểm tra từ và tổng hợp WAV.
+- **Text to Speech:** nhập văn bản, kiểm tra từ và tổng hợp WAV.
 - **Khám Phá CSDL:** tìm kiếm từ, xem trạng thái audio và các thông số cần thiết
   gồm thời lượng, sample rate, năng lượng RMS và cao độ F0 (Hz).
 
